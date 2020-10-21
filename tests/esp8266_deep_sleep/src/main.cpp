@@ -1,7 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
 
-#define DEBUG 1
+#define DEBUG 0
 #define SLEEP_TIME 10 //In seconds
 
 WiFiClient client;
