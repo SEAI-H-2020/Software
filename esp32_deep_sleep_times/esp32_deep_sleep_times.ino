@@ -15,15 +15,15 @@ String server_host = "http://httpbin.org/post";
 #define FORCE_MODE 3
 
 // Fake Data
-String api_key = "SeaiHRules";
-float temp = 20.0;
-float hum = 5; //No clue 
-float noise = 60;
-float wind_speed = 20;
-float voltage = 3.2;
+RTC_DATA_ATTR String api_key = "SeaiHRules";
+RTC_DATA_ATTR float temp = 20.0;
+RTC_DATA_ATTR float hum = 5; //No clue 
+RTC_DATA_ATTR float noise = 60;
+RTC_DATA_ATTR float wind_speed = 20;
+RTC_DATA_ATTR float voltage = 3.2;
 
 //Timestamps
-uint32_t t0, t1, t2, t3, t4;
+RTC_DATA_ATTR uint32_t t0, t1, t2, t3, t4;
 
 void setup(){
   // D0 needs to be connected to RST in order to wakeup the ESP!
