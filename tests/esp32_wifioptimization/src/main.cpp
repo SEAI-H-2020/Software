@@ -6,20 +6,8 @@
 #define SLEEP_TIME_IN_US SLEEP_TIME * 1e6
 
 WiFiClient client;
-const char* wifi_ssid ="MEO-775ED0"; //const char* wifi_ssid ="NETWORK_SSID";
-const char* wifi_pwd = "b1a5cf47fc"; //const char* wifi_pwd = "PASSWORD";
-
-
-HTTPClient http;
-String server_host = "http://httpbin.org/post";
-
-// Fake Data
-String api_key = "SeaiHRules";
-float temp = 20.0;
-float hum = 5; //No clue 
-float noise = 60;
-float wind_speed = 20;
-float voltage = 3.2;
+const char* wifi_ssid ="NETWORK_SSID";
+const char* wifi_pwd = "PASSWORD";
 
 //Timestamps
 uint32_t t0, t1, t2, t3, t4;
