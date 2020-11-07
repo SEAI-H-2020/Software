@@ -26,7 +26,7 @@ def generate_fake_data():
     measurements = {}
     measurements['temp'] = random.gauss(20, 1)
     measurements['hum'] = random.gauss(60, 10)
-    measurements['windspeed'] = random.gauss(40, 10)
+    measurements['windspeed'] = random.gauss(5, 1)
     measurements['noise'] = random.gauss(50, 20)
     measurements['voltage'] = random.gauss(3.3, 0.1)
     return measurements
