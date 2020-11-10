@@ -73,7 +73,7 @@ def publish_neasurements(db, measurements):
           f' batt:{measurements["voltage"]:.2f}V')
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description='Send fake measurement to google firestore.')
     parser.add_argument("--real", action='store_true', help='Uses real data for OpenWeatherMap')
     parser.add_argument("--location", type=str, default='Porto, Pt', help='Specify location from openweathermap for temp, hum and windspeed ')
     parser.add_argument("--clear", action='store_true', help="Deletes DB before starting")
