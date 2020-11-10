@@ -61,7 +61,7 @@ def publish_neasurements(db, measurements):
     data = {
         u'sensor_values': sensor_values,
         u'battery': measurements['voltage'],
-        #u'date': datetime.datetime.now(),
+        u'timestamp': time.time(),
     }
 
     db.push(data)
