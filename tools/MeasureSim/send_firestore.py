@@ -91,7 +91,7 @@ if __name__ == '__main__':
             doc.reference.delete()
             deleted_count = deleted_count + 1
         print(f'Deleted {deleted_count} measurements')
-    if args.real or args.location:
+    if args.real:
         mgr = sign_in_openweatermap()
 
     for measure in range(args.n):
