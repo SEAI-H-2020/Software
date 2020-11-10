@@ -83,5 +83,5 @@ python .\send_rtdb.py -t 5 -n 10 --clear --real --location "Porto,Pt"
 
 **Note 1:** Noise and voltage measurements are stil simulated
 
-**Note 2:** If you ommit the `--real` parameter the script simulates using gaussian distributions all values
+**Note 2:** If you ommit the `--real` parameter the script simulates all valuesusing gaussian distributions
 
