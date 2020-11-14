@@ -19,7 +19,7 @@ app.post("/measurements", async (req, res) => {
     try {
         console.log("Hey");
         const newMeasurement = await pool.query(
-            "INSERT INTO measuredownload csv from rest api nodements (temperature, humidity, wind, noise_level, voltage) \
+            "INSERT INTO measurements (temperature, humidity, wind, noise_level, voltage) \
             VALUES ($1, $2, $3, $4, $5)",
             [req.body.temperature, req.body.humidity, req.body.wind, 
             req.body.noise_level, req.body.voltage]
