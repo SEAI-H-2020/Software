@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 //File Name for csv export of measurements 
-const fileName = "export.csv"
+const fileName = "export.csv";
 
 // Upload sensor measurements
 app.post("/measurements", async (req, res) => {
