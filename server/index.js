@@ -6,7 +6,6 @@ const cors = require("cors");
 const json2csv = require("json2csv")
 
 const pool = require("./db");
-const { json } = require("express");
 
 app.use(cors());
 app.use(express.json());
@@ -41,7 +40,6 @@ app.get("/measurements", async (req, res) => {
     } catch (err) {
         console.log(err.message);
     }
-    console.log(req.body);
 });
 
 // Donwload csv 
@@ -58,7 +56,6 @@ app.get("/csv", async (req, res) => {
     } catch (err) {
         console.log(err.message);
     }
-    console.log(req.body);
 });
 
 const port = 5000;
