@@ -5,7 +5,7 @@ import time
 from pyowm import OWM
 
 # Default number of uploads
-DEFAULT_MAX_UPLOADS = 1e4
+DEFAULT_MAX_UPLOADS = 10000
 DEFAULT_SAMPLE_PERIOD_SECS = 60
 
 # OpenWeatherMap
