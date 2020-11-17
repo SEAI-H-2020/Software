@@ -48,11 +48,23 @@ app.get("/csv", async (req, res) => {
         const queryres = await pool.query(
             "SELECT * from measurements"
         );
-        // Add checks for csv integrity
+        // ToDo: Add checks for csv integrity
         const csv = json2csv.parse(queryres.rows);
         res.header('Content-Type', 'text/csv');
         res.attachment(fileName);
         res.send(csv);
+    } catch (err) {
+        console.log(err.message);
+    }
+});
+
+//  Clear database 
+app.delete("/measurements", async (req, res) => {
+    try {
+        const queryres = await pool.query(
+            "DELETE from measurements"
+        );
+        res.json(queryres)
     } catch (err) {
         console.log(err.message);
     }
