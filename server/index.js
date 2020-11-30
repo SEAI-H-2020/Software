@@ -70,6 +70,38 @@ app.delete("/measurements", async (req, res) => {
     }
 });
 
+//Get User Settings
+app.get("/usersettings/:box_id", async(req,res) =>{
+    try{
+        console.log("GET request user settings of box: " + req.params.box_id);
+        const user_settings = await pool.query(
+            "SELECT* FROM configurations WHERE box = $1",
+            [req.params.box_id]
+        );
+        res.json(user_settings.rows);
+    } catch (err) {
+            console.log(err.message);
+    }
+});
+
+//Update User Settings 
+app.put("/usersettings/:box_id", async(req,res) =>{
+    try{
+        const params = req.params;
+        console.log("UPDATE request user settings of box: " + req.params.box_id);
+        const queryres = await pool.query(
+            "UPDATE configurations SET sync_period = $1, sample_time = $2, \
+                shutdown_on_wakeup = $3, username = $4\
+            WHERE box = $5",
+            [req.body.sync_period, req.body.sample_time, 
+                req.body.shutdown_on_wakeup, req.body.username, req.params.box_id]
+        );
+        res.json("Updated!");
+    } catch (err) {
+            console.log(err.message);
+        }
+})
+
 const port = 5000;
 app.listen(port, () => {
     console.log("Servidor iniciado no port " + port)
