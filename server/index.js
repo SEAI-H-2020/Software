@@ -90,12 +90,12 @@ app.put("/usersettings/:box_id", async(req,res) =>{
         const params = req.params;
         console.log("UPDATE request user settings of box: " + req.params.box_id);
         const queryres = await pool.query(
-            "UPDATE configurations SET sync_period = $1, sample_time = $2, \
-                shutdown_on_wakeup = $3, username = $4\
-            WHERE box = $5",
+            `UPDATE configurations SET sync_period = $1, sample_time = $2,
+             shutdown_on_wakeup = $3, username = $4 WHERE box = $5`,
             [req.body.sync_period, req.body.sample_time, 
                 req.body.shutdown_on_wakeup, req.body.username, req.params.box_id]
         );
+        console.log(queryres)
         res.json("Updated!");
     } catch (err) {
             console.log(err.message);
