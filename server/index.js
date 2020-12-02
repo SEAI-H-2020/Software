@@ -13,6 +13,9 @@ app.use(express.json());
 //File Name for csv export of measurements 
 const fileName = "export.csv";
 
+//Add authentication APIs
+require('./Authentication_API')(app, pool);
+
 // Upload sensor measurements
 app.post("/measurements", async (req, res) => {
     try {
