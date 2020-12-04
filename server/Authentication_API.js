@@ -86,3 +86,4 @@ app.get("/insertuser/:username/:password/:email", async(req, res) => {
     res.send(string_result);
     console.log(string_result);
 });
+}
