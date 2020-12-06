@@ -35,6 +35,10 @@ To upload to a local database running on your pc:
 ```
 python .\send_api.py --url http://localhost:5000/measurements
 ```
+To upload to a generic backend server (as long as it has the APIs to receive the data):
+```
+python .\send_api.py --url http://<SERVER_URL>:<SERVER_PORT>/<API_ENDPOINT>
+```
 
 ## Additional arguments
 
