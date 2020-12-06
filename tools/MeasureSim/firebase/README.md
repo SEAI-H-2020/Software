@@ -12,7 +12,7 @@ Follow this [guide](https://phoenixnap.com/kb/how-to-install-python-3-windows) i
 
 ## Instalation (Ubuntu and Windows)
 
-Start by cloning the repository and changing to the MeasureSim directory
+Start by cloning the repository and changing to the MeasureSim/firebase directory
 
 To install all the dependencies using pip run:
 
