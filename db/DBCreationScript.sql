@@ -16,7 +16,7 @@ CREATE TABLE measurements
     noise_level real,
     voltage real,
     CONSTRAINT measurements_pkey PRIMARY KEY (id)
-)
+);
 
 
 CREATE TABLE configurations
