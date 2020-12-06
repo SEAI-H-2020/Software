@@ -4,7 +4,7 @@ CREATE TABLE users
     email TEXT COLLATE pg_catalog."default" NOT NULL,
     password TEXT COLLATE pg_catalog."default" NOT NULL,
     CONSTRAINT users_pkey PRIMARY KEY (username)
-) 
+); 
 
 CREATE TABLE measurements
 (
@@ -32,4 +32,4 @@ CREATE TABLE configurations
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID
-)
+);
