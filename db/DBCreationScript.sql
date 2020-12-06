@@ -1,5 +1,3 @@
-CREATE EXTENSION pgcrypto; --necessary for password encryption
-
 CREATE TABLE users
 (
     username TEXT COLLATE pg_catalog."default" NOT NULL,
