@@ -11,6 +11,7 @@ All scripts were tested under Windows 10 and using Python 3.7.9
 ## Pre-requisites (Windows)
 
 Follow this [guide](https://phoenixnap.com/kb/how-to-install-python-3-windows) if you need to install python3. Don't forget to add Python to your Path!
+
 Note!: If you installed node.js with additional features you probably already have python3 installed.
 
 ## Instalation (Ubuntu and Windows)
