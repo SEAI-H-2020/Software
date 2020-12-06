@@ -65,7 +65,7 @@ def publish_neasurements(url, measurements, debug = False):
           f' batt:{measurements["voltage"]:.2f}V')
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Send fake measurement to google firestore.')
+    parser = argparse.ArgumentParser(description='Send fake measurements trough REST API.')
     parser.add_argument("--url", type=str, required=True, help='URL for upload measurements rest API endpoint')
     parser.add_argument("--real", action='store_true', help='Uses real data for OpenWeatherMap')
     parser.add_argument("--location", type=str, default='Porto, Pt', help='Specify location from openweathermap for temp, hum and windspeed ')
