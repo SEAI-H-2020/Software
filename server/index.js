@@ -146,7 +146,7 @@ app.put("/usersettings/:box_id", async(req,res) =>{
                 description: 'Measurement from sensor box',
                 required: true,
                 type: 'object',
-                schema: {$ref: "#/definitions/NewMeasurement"}
+                schema: {$ref: "#/definitions/NewUserSetting"}
         }
         */   
     try{
