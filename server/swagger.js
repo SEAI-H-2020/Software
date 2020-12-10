@@ -15,7 +15,7 @@ const doc = {
                     <p> SEAI H - The Software Team </p>
                     <p><b>WARNING:</b> In development, some of these APIs do not have failchecks yet<p>`
                 },
-    host: "localhost:5000",
+    host: "smartsensorbox.ddns.net:5000",
     basePath: "/",
     schemes: ['http'],
     consumes: ['application/json'],
