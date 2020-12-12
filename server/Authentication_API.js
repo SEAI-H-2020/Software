@@ -1,6 +1,11 @@
 module.exports = function(app, pool){
 // list of users and their respective username, password and email
 app.get("/users", async(req, res) => {
+    /*
+        Swagger Documentation:
+        #swagger.tags = ['Authentication']
+        #swagger.description = 'Lists all users and their data.'
+    */   
     try {
         const userstable = await pool.query(
             "SELECT * from users"
@@ -13,6 +18,13 @@ app.get("/users", async(req, res) => {
 
 //returns whether the pair username+password is correct/incorrect
 app.get("/users/:username/:password", async(req, res) => {
+    /*
+        Swagger Documentation:
+        #swagger.tags = ['Authentication']
+        #swagger.description = 'Returns whether the pair username+password is correct/incorrect.'
+        #swagger.parameters['username'] = {type: "string"}
+        #swagger.parameters['password'] = {type: "string"}
+    */   
     try {
 
         var string_result = "";
@@ -58,6 +70,14 @@ app.get("/users/:username/:password", async(req, res) => {
 
 //inserts the username+password+email and returns if the process was sucesseful or not
 app.get("/insertuser/:username/:password/:email", async(req, res) => {
+    /*
+        Swagger Documentation:
+        #swagger.tags = ['Authentication']
+        #swagger.description = 'Inserts a new user and returns if the process was sucesseful or not'
+        #swagger.parameters['username'] = {type: "string"}
+        #swagger.parameters['password'] = {type: "string"}
+        #swagger.parameters['email'] = {type: "string"}
+    */   
     try {
 
         var string_result = "";
