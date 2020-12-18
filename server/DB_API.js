@@ -1,294 +1,520 @@
-module.exports = function(app, pool){
-//Celsius -> Fahrenheit 
-function CelsiustoFahrenheit(cTemperature) {
-    var fTemperature = (cTemperature * 1.8) + 32;
-    fTemperature = Math.round(fTemperature * 1e2) / 1e2;
-    console.log(cTemperature + " Celsius -> " + fTemperature + " Fahrenheit");
-    return fTemperature;
-}
-
-//Meters per second -> Miles per hour        
-function MPStoMPH(mpsWind) {
-    var mphWind = mpsWind * 2.237;
-    mphWind = Math.round(mphWind * 1e2) / 1e2;
-    console.log(mpsWind + " Meters per second -> " + mphWind + " Miles per hour");
-    return mphWind;
-}
-
-// converts latest measurement from metric to imperial
-app.get("/measurements/imperial", async(req, res) => {
-    try {
-        const newMeasurement = await pool.query(
-            "SELECT * from measurements ORDER BY measurements.tstamp DESC LIMIT 1 "
-        );
-
-        var cTemperature = newMeasurement.rows[0].temperature;
-        var mpsWind = newMeasurement.rows[0].wind;
-
-        //Celsius -> Fahrenheit 
-        var fTemperature = CelsiustoFahrenheit(cTemperature);
-
-        //Meters per second -> Miles per hour
-        var mphWind = MPStoMPH(mpsWind);
-
-        newMeasurement.rows[0].temperature = fTemperature;
-        newMeasurement.rows[0].wind = mphWind;
-        res.json(newMeasurement.rows);
-
-    } catch (err) {
-        console.log(err.message);
+module.exports = function(app, pool) {
+    //Celsius -> Fahrenheit 
+    function CelsiustoFahrenheit(cTemperature) {
+        var fTemperature = (cTemperature * 1.8) + 32;
+        fTemperature = Math.round(fTemperature * 1e2) / 1e2;
+        console.log(cTemperature + " Celsius -> " + fTemperature + " Fahrenheit");
+        return fTemperature;
     }
-});
 
-//Measurements between 'start' and 'finish'
-app.get("/measurements/:start/:finish", async(req, res) => {
-    //YYYY-MM-DD HH:MM:SS
-    var getStart = [req.params.start];
-    var getFinish = [req.params.finish];
-
-    try {
-        const newMeasurement = await pool.query(
-            "SELECT * from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish + "';"
-        );
-
-        res.json(newMeasurement.rows);
-
-    } catch (err) {
-        console.log(err.message);
+    //Meters per second -> Miles per hour        
+    function MPStoMPH(mpsWind) {
+        var mphWind = mpsWind * 2.237;
+        mphWind = Math.round(mphWind * 1e2) / 1e2;
+        console.log(mpsWind + " Meters per second -> " + mphWind + " Miles per hour");
+        return mphWind;
     }
-});
 
-//Measurements between 'start' and 'finish' in imperial
-app.get("/measurements/imperial/:start/:finish", async(req, res) => {
-    //YYYY-MM-DD HH:MM:SS
-    var getStart = [req.params.start];
-    var getFinish = [req.params.finish];
+    app.get("/measurements/average/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Measurements average between the "start" and "end" interval'
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
 
-    try {
-        const newMeasurement = await pool.query(
-            "SELECT * from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish + "';"
-        );
-        var i = 0;
-        var rows = newMeasurement.rowCount;
-        var cTemperature = 0;
-        var mpsWind = 0;
-        var fTemperature = 0;
-        var mphWind = 0;
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT ROUND(AVG(temperature)::numeric,2) as avg_temperature, ROUND(AVG(humidity)::numeric,2) as avg_humidity, ROUND(AVG(wind)::numeric,2) as avg_wind, ROUND(AVG(noise_level )::numeric,2) as avg_noise_level " +
+                "from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+            );
+            newMeasurement.rows[0].avg_temperature = parseFloat(newMeasurement.rows[0].avg_temperature);
+            newMeasurement.rows[0].avg_humidity = parseFloat(newMeasurement.rows[0].avg_humidity);
+            newMeasurement.rows[0].avg_wind = parseFloat(newMeasurement.rows[0].avg_wind);
+            newMeasurement.rows[0].avg_noise_level = parseFloat(newMeasurement.rows[0].avg_noise_level);
+            res.json(newMeasurement.rows);
 
-        console.log(rows);
-        for (i; i < rows; i++) {
-            cTemperature = newMeasurement.rows[i].temperature;
-            mpsWind = newMeasurement.rows[i].wind;
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    app.get("/measurements/average/:sensor/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Sensor average measurement between the "start" and "end" interval'
+        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getSensor = [req.params.sensor];
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
+
+        try {
+            const query = "SELECT ROUND(AVG(" + getSensor + ")::numeric,2)  as avg_" + getSensor +
+                " from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';";
+            //console.log(query);
+
+            const newMeasurement = await pool.query(query);
+            if (getSensor == "temperature") {
+                newMeasurement.rows[0].avg_temperature = parseFloat(newMeasurement.rows[0].avg_temperature);
+            } else if (getSensor == "humidity") {
+                newMeasurement.rows[0].avg_humidity = parseFloat(newMeasurement.rows[0].avg_humidity);
+            } else if (getSensor == "wind") {
+                newMeasurement.rows[0].avg_wind = parseFloat(newMeasurement.rows[0].avg_wind);
+            } else if (getSensor == "noise_level") {
+                newMeasurement.rows[0].avg_noise_level = parseFloat(newMeasurement.rows[0].avg_noise_level);
+            }
+
+            res.json(newMeasurement.rows);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    //Average imperial Measurements between 'start' and 'end'
+    app.get("/measurements/imperial/average/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Measurements average (in imperial units) between the "start" and "end" interval'
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
+
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT ROUND(AVG(temperature)::numeric,2) as avg_temperature, ROUND(AVG(humidity)::numeric,2) as avg_humidity, ROUND(AVG(wind)::numeric,2) as avg_wind, ROUND(AVG(noise_level )::numeric,2) as avg_noise_level " +
+                "from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+            );
+
+            var cTemperature = newMeasurement.rows[0].avg_temperature;
+            var mpsWind = newMeasurement.rows[0].avg_wind;
 
             //Celsius -> Fahrenheit 
-            fTemperature = CelsiustoFahrenheit(cTemperature);
+            var fTemperature = CelsiustoFahrenheit(cTemperature);
 
             //Meters per second -> Miles per hour
-            mphWind = MPStoMPH(mpsWind);
+            var mphWind = MPStoMPH(mpsWind);
 
-            newMeasurement.rows[i].temperature = fTemperature;
-            newMeasurement.rows[i].wind = mphWind;
+            newMeasurement.rows[0].avg_temperature = fTemperature;
+            newMeasurement.rows[0].avg_humidity = parseFloat(newMeasurement.rows[0].avg_humidity);
+            newMeasurement.rows[0].avg_wind = mphWind;
+            newMeasurement.rows[0].avg_noise_level = parseFloat(newMeasurement.rows[0].avg_noise_level);
+            res.json(newMeasurement.rows);
+
+        } catch (err) {
+            console.log(err.message);
         }
+    });
 
-        res.json(newMeasurement.rows);
+    //Average sensor easurements between 'start' and 'end'
+    app.get("/measurements/imperial/average/:sensor/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Sensor average measurement (in imperial units) between the "start" and "end" interval'
+        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getSensor = [req.params.sensor];
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
 
-    } catch (err) {
-        console.log(err.message);
-    }
-});
+        try {
+            const query = "SELECT ROUND(AVG(" + getSensor + ")::numeric,2) as avg_" + getSensor +
+                " from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';";
+            //console.log(query);
+            const newMeasurement = await pool.query(query);
 
-//Sensor X measurements between 'start' and 'finish'
-app.get("/measurements/:sensor/:start/:finish", async(req, res) => {
-    //YYYY-MM-DD HH:MM:SS
-    var getSensor = [req.params.sensor];
-    var getStart = [req.params.start];
-    var getFinish = [req.params.finish];
-
-    try {
-        const newMeasurement = await pool.query(
-            "SELECT " + getSensor + ",tstamp from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish + "';"
-        );
-
-        res.json(newMeasurement.rows);
-
-    } catch (err) {
-        console.log(err.message);
-    }
-});
-
-//Sensor X measurements between 'start' and 'finish' in Imperial
-app.get("/measurements/imperial/:sensor/:start/:finish", async(req, res) => {
-    //YYYY-MM-DD HH:MM:SS
-    var getSensor = [req.params.sensor];
-    var getStart = [req.params.start];
-    var getFinish = [req.params.finish];
-
-    try {
-        const newMeasurement = await pool.query(
-            "SELECT " + getSensor + ",tstamp from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish + "';"
-        );
-
-        var i = 0;
-        var rows = newMeasurement.rowCount;
-        var cTemperature = 0;
-        var mpsWind = 0;
-        var fTemperature = 0;
-        var mphWind = 0;
-
-        console.log(rows);
-        for (i; i < rows; i++) {
+            var cTemperature = 0;
+            var mpsWind = 0;
+            var fTemperature = 0;
+            var mphWind = 0;
 
             if (getSensor == "temperature") {
                 //Celsius -> Fahrenheit 
-                cTemperature = newMeasurement.rows[i].temperature;
+                cTemperature = newMeasurement.rows[0].avg_temperature;
                 fTemperature = CelsiustoFahrenheit(cTemperature);
-                newMeasurement.rows[i].temperature = fTemperature;
+                newMeasurement.rows[0].avg_temperature = fTemperature;
             } else if (getSensor == "wind") {
                 //Meters per second -> Miles per hour
-                mpsWind = newMeasurement.rows[i].wind;
+                mpsWind = newMeasurement.rows[0].avg_wind;
                 mphWind = MPStoMPH(mpsWind);
-                newMeasurement.rows[i].wind = mphWind;
+                newMeasurement.rows[0].avg_wind = mphWind;
+            } else if (getSensor == "humidity") {
+                newMeasurement.rows[0].avg_humidity = parseFloat(newMeasurement.rows[0].avg_humidity);
+            } else if (getSensor == "noise_level") {
+                newMeasurement.rows[0].avg_noise_level = parseFloat(newMeasurement.rows[0].avg_noise_level);
             }
+
+            res.json(newMeasurement.rows);
+
+        } catch (err) {
+            console.log(err.message);
         }
-        res.json(newMeasurement.rows);
+    });
 
-    } catch (err) {
-        console.log(err.message);
-    }
-});
 
-// Min value of sensor X in interval Y
-app.get("/measurements/:sensor/min/:start/:finish", async(req, res) => {
-    //YYYY-MM-DD HH:MM:SS
-    var getSensor = [req.params.sensor];
-    var getStart = [req.params.start];
-    var getFinish = [req.params.finish];
+    // converts latest measurement from metric to imperial
+    app.get("/measurements/imperial", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Gets most recent measurement (in imperial units)'
+        */
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT * from measurements ORDER BY measurements.tstamp DESC LIMIT 1 "
+            );
 
-    try {
-        const query = "SELECT " + getSensor + ",tstamp from measurements " +
-            "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish +
-            "'AND " + getSensor + " = (select min(" + getSensor + ") from measurements " +
-            "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish + "');";
-        //console.log(query);
+            var cTemperature = newMeasurement.rows[0].temperature;
+            var mpsWind = newMeasurement.rows[0].wind;
 
-        const newMeasurement = await pool.query(query);
-        res.json(newMeasurement.rows);
+            //Celsius -> Fahrenheit 
+            var fTemperature = CelsiustoFahrenheit(cTemperature);
 
-    } catch (err) {
-        console.log(err.message);
-    }
-});
+            //Meters per second -> Miles per hour
+            var mphWind = MPStoMPH(mpsWind);
 
-// Min value of sensor X in interval Y IMPERIAL
-app.get("/measurements/imperial/:sensor/min/:start/:finish", async(req, res) => {
-    //YYYY-MM-DD HH:MM:SS
-    var getSensor = [req.params.sensor];
-    var getStart = [req.params.start];
-    var getFinish = [req.params.finish];
+            newMeasurement.rows[0].temperature = fTemperature;
+            newMeasurement.rows[0].wind = mphWind;
+            res.json(newMeasurement.rows);
 
-    try {
-        const query = "SELECT " + getSensor + ",tstamp from measurements " +
-            "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish +
-            "'AND " + getSensor + " = (select min(" + getSensor + ") from measurements " +
-            "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish + "');";
-        //console.log(query);
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
 
-        const newMeasurement = await pool.query(query);
+    //Measurements between 'start' and 'end'
+    app.get("/measurements/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Measurements between the "start" and "end" interval'
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
 
-        var i = 0;
-        var rows = newMeasurement.rowCount;
-        var cTemperature = 0;
-        var mpsWind = 0;
-        var fTemperature = 0;
-        var mphWind = 0;
-        console.log(rows);
-        for (i; i < rows; i++) {
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT * from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+            );
 
-            if (getSensor == "temperature") {
+            res.json(newMeasurement.rows);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    //Measurements between 'start' and 'end' in imperial
+    app.get("/measurements/imperial/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Measurement (in imperial units) between the "start" and "end" interval'
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
+
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT * from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+            );
+            var i = 0;
+            var rows = newMeasurement.rowCount;
+            var cTemperature = 0;
+            var mpsWind = 0;
+            var fTemperature = 0;
+            var mphWind = 0;
+
+            console.log(rows);
+            for (i; i < rows; i++) {
+                cTemperature = newMeasurement.rows[i].temperature;
+                mpsWind = newMeasurement.rows[i].wind;
+
                 //Celsius -> Fahrenheit 
-                cTemperature = newMeasurement.rows[i].temperature;
                 fTemperature = CelsiustoFahrenheit(cTemperature);
-                newMeasurement.rows[i].temperature = fTemperature;
-            } else if (getSensor == "wind") {
+
                 //Meters per second -> Miles per hour
-                mpsWind = newMeasurement.rows[i].wind;
                 mphWind = MPStoMPH(mpsWind);
+
+                newMeasurement.rows[i].temperature = fTemperature;
                 newMeasurement.rows[i].wind = mphWind;
             }
+
+            res.json(newMeasurement.rows);
+
+        } catch (err) {
+            console.log(err.message);
         }
+    });
 
-        res.json(newMeasurement.rows);
+    //Sensor X measurements between 'start' and 'end'
+    app.get("/measurements/:sensor/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Sensor measurement between the "start" and "end" interval'
+        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getSensor = [req.params.sensor];
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
 
-    } catch (err) {
-        console.log(err.message);
-    }
-});
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT " + getSensor + ",tstamp from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+            );
 
-// Max value of sensor X in interval Y
-app.get("/measurements/:sensor/max/:start/:finish", async(req, res) => {
-    //YYYY-MM-DD HH:MM:SS
-    var getSensor = [req.params.sensor];
-    var getStart = [req.params.start];
-    var getFinish = [req.params.finish];
+            res.json(newMeasurement.rows);
 
-    try {
-        const query = "SELECT " + getSensor + ",tstamp from measurements " +
-            "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish +
-            "'AND " + getSensor + " = (select MAX(" + getSensor + ") from measurements " +
-            "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish + "');";
-        //console.log(query);
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
 
-        const newMeasurement = await pool.query(query);
+    //Sensor X measurements between 'start' and 'end' in Imperial
+    app.get("/measurements/imperial/:sensor/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Sensor measurement (in imperial units) between the "start" and "end" interval'
+        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getSensor = [req.params.sensor];
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
 
-        res.json(newMeasurement.rows);
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT " + getSensor + ",tstamp from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+            );
 
-    } catch (err) {
-        console.log(err.message);
-    }
-});
+            var i = 0;
+            var rows = newMeasurement.rowCount;
+            var cTemperature = 0;
+            var mpsWind = 0;
+            var fTemperature = 0;
+            var mphWind = 0;
 
-// Max value of sensor X in interval Y IMPERIAL
-app.get("/measurements/imperial/:sensor/max/:start/:finish", async(req, res) => {
-    //YYYY-MM-DD HH:MM:SS
-    var getSensor = [req.params.sensor];
-    var getStart = [req.params.start];
-    var getFinish = [req.params.finish];
+            console.log(rows);
+            for (i; i < rows; i++) {
 
-    try {
-        const query = "SELECT " + getSensor + ",tstamp from measurements " +
-            "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish +
-            "'AND " + getSensor + " = (select MAX(" + getSensor + ") from measurements " +
-            "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getFinish + "');";
-        //console.log(query);
-
-        const newMeasurement = await pool.query(query);
-
-        var i = 0;
-        var rows = newMeasurement.rowCount;
-        var cTemperature = 0;
-        var mpsWind = 0;
-        var fTemperature = 0;
-        var mphWind = 0;
-        console.log(rows);
-        for (i; i < rows; i++) {
-
-            if (getSensor == "temperature") {
-                //Celsius -> Fahrenheit 
-                cTemperature = newMeasurement.rows[i].temperature;
-                fTemperature = CelsiustoFahrenheit(cTemperature);
-                newMeasurement.rows[i].temperature = fTemperature;
-            } else if (getSensor == "wind") {
-                //Meters per second -> Miles per hour
-                mpsWind = newMeasurement.rows[i].wind;
-                mphWind = MPStoMPH(mpsWind);
-                newMeasurement.rows[i].wind = mphWind;
+                if (getSensor == "temperature") {
+                    //Celsius -> Fahrenheit 
+                    cTemperature = newMeasurement.rows[i].temperature;
+                    fTemperature = CelsiustoFahrenheit(cTemperature);
+                    newMeasurement.rows[i].temperature = fTemperature;
+                } else if (getSensor == "wind") {
+                    //Meters per second -> Miles per hour
+                    mpsWind = newMeasurement.rows[i].wind;
+                    mphWind = MPStoMPH(mpsWind);
+                    newMeasurement.rows[i].wind = mphWind;
+                }
             }
+            res.json(newMeasurement.rows);
+
+        } catch (err) {
+            console.log(err.message);
         }
+    });
 
-        res.json(newMeasurement.rows);
+    // Min value of sensor X in interval Y
+    app.get("/measurements/:sensor/min/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Minimum value of sensor measurement between the "start" and "end" interval'
+        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getSensor = [req.params.sensor];
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
 
-    } catch (err) {
-        console.log(err.message);
-    }
-});
+        try {
+            const query = "SELECT " + getSensor + ",tstamp from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd +
+                "'AND " + getSensor + " = (select min(" + getSensor + ") from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "');";
+            //console.log(query);
+
+            const newMeasurement = await pool.query(query);
+            res.json(newMeasurement.rows);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    // Min value of sensor X in interval Y IMPERIAL
+    app.get("/measurements/imperial/:sensor/min/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Minimum value of sensor measurement (in imperial units) between the "start" and "end" interval'
+        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getSensor = [req.params.sensor];
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
+
+        try {
+            const query = "SELECT " + getSensor + ",tstamp from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd +
+                "'AND " + getSensor + " = (select min(" + getSensor + ") from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "');";
+            //console.log(query);
+
+            const newMeasurement = await pool.query(query);
+
+            var i = 0;
+            var rows = newMeasurement.rowCount;
+            var cTemperature = 0;
+            var mpsWind = 0;
+            var fTemperature = 0;
+            var mphWind = 0;
+            console.log(rows);
+            for (i; i < rows; i++) {
+
+                if (getSensor == "temperature") {
+                    //Celsius -> Fahrenheit 
+                    cTemperature = newMeasurement.rows[i].temperature;
+                    fTemperature = CelsiustoFahrenheit(cTemperature);
+                    newMeasurement.rows[i].temperature = fTemperature;
+                } else if (getSensor == "wind") {
+                    //Meters per second -> Miles per hour
+                    mpsWind = newMeasurement.rows[i].wind;
+                    mphWind = MPStoMPH(mpsWind);
+                    newMeasurement.rows[i].wind = mphWind;
+                }
+            }
+
+            res.json(newMeasurement.rows);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    // Max value of sensor X in interval Y
+    app.get("/measurements/:sensor/max/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Maximum value of sensor measurement between the "start" and "end" interval'
+        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getSensor = [req.params.sensor];
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
+
+        try {
+            const query = "SELECT " + getSensor + ",tstamp from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd +
+                "'AND " + getSensor + " = (select MAX(" + getSensor + ") from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "');";
+            //console.log(query);
+
+            const newMeasurement = await pool.query(query);
+
+            res.json(newMeasurement.rows);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    // Max value of sensor X in interval Y IMPERIAL
+    app.get("/measurements/imperial/:sensor/max/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Maximum value of sensor measurement (in imperial units) between the "start" and "end" interval'
+        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getSensor = [req.params.sensor];
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
+
+        try {
+            const query = "SELECT " + getSensor + ",tstamp from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd +
+                "'AND " + getSensor + " = (select MAX(" + getSensor + ") from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "');";
+            //console.log(query);
+
+            const newMeasurement = await pool.query(query);
+
+            var i = 0;
+            var rows = newMeasurement.rowCount;
+            var cTemperature = 0;
+            var mpsWind = 0;
+            var fTemperature = 0;
+            var mphWind = 0;
+            console.log(rows);
+            for (i; i < rows; i++) {
+
+                if (getSensor == "temperature") {
+                    //Celsius -> Fahrenheit 
+                    cTemperature = newMeasurement.rows[i].temperature;
+                    fTemperature = CelsiustoFahrenheit(cTemperature);
+                    newMeasurement.rows[i].temperature = fTemperature;
+                } else if (getSensor == "wind") {
+                    //Meters per second -> Miles per hour
+                    mpsWind = newMeasurement.rows[i].wind;
+                    mphWind = MPStoMPH(mpsWind);
+                    newMeasurement.rows[i].wind = mphWind;
+                }
+            }
+
+            res.json(newMeasurement.rows);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
 }
