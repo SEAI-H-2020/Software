@@ -37,7 +37,15 @@ module.exports = function(app, pool) {
             newMeasurement.rows[0].avg_humidity = parseFloat(newMeasurement.rows[0].avg_humidity);
             newMeasurement.rows[0].avg_wind = parseFloat(newMeasurement.rows[0].avg_wind);
             newMeasurement.rows[0].avg_noise_level = parseFloat(newMeasurement.rows[0].avg_noise_level);
-            res.json(newMeasurement.rows);
+            //res.json(newMeasurement.rows);
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            console.log(jsonResult);
+            res.json(jsonResult);
 
         } catch (err) {
             console.log(err.message);
@@ -222,7 +230,14 @@ module.exports = function(app, pool) {
                 "SELECT * from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
             );
 
-            res.json(newMeasurement.rows);
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            console.log(jsonResult);
+            res.json(jsonResult);
 
         } catch (err) {
             console.log(err.message);

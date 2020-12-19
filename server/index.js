@@ -68,7 +68,14 @@ app.get("/measurements", async(req, res) => {
         const newMeasurement = await pool.query(
             "SELECT * from measurements ORDER BY measurements.tstamp DESC LIMIT 1"
         );
-        res.json(newMeasurement.rows);
+        var jsonResult = JSON.stringify(newMeasurement.rows);
+
+        var preamble = "{ \"measurement\" : ";
+        jsonResult = preamble + jsonResult + "}";
+        jsonResult = JSON.parse(jsonResult);
+
+        console.log(jsonResult);
+        res.json(jsonResult);
     } catch (err) {
         console.log(err.message);
     }
@@ -108,7 +115,7 @@ app.delete("/measurements", async(req, res) => {
         const queryres = await pool.query(
             "DELETE from measurements"
         );
-        res.json(queryres)
+        res.json(queryres);
     } catch (err) {
         console.log(err.message);
     }
