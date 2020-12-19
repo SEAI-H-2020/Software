@@ -5,7 +5,7 @@
 const swaggerAutogen = require('swagger-autogen')()
 
 const outputFile = './swagger_output.json'
-const endpointsFiles = ['./index.js', 'Authentication_API.js']
+const endpointsFiles = ['./index.js', 'Authentication_API.js', 'DB_API.js']
 
 const doc = {
     info: {
