@@ -19,7 +19,7 @@ const char* APpass = "softwareH";
 String box_id = "1";
 
 //Server Settings
-String POST_url = "http://192.168.1.100:5000/measurements/multiple";
+String POST_url = "http://smartsensorbox.ddns.net:5000/measurements/multiple";
 String GET_url = "http://smartsensorbox.ddns.net:5000/usersettings/" + box_id;
 
 //RTC Variables
@@ -142,7 +142,7 @@ void setup() {
   }
 
   //-----------------------------------Sleep----------------------------------------
-  esp_sleep_enable_timer_wakeup(dss.wake_up_time*US_TO_S_FACTOR*60);
+  esp_sleep_enable_timer_wakeup(0.2*US_TO_S_FACTOR*60);
   esp_deep_sleep_start();
 
 }
