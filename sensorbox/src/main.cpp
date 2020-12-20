@@ -5,7 +5,9 @@
 #include "ssbsensors.h"
 #include "ssbdeepsleep.h"
 
-#define MAX_MEASUREMENTS 20
+#define MAX_SYNC_PERIOD 30
+#define MAX_SAMPLE_PERIOD 600
+#define MAX_MEASUREMENTS MAX_SAMPLE_PERIOD/MAX_SYNC_PERIOD
 #define RESET_WIFI_SETTINGS 0
 #define INITIAL_DELAY 0         // initial delay of 5sec before printing out stuff
 #define US_TO_S_FACTOR 1e6
@@ -142,7 +144,8 @@ void setup() {
   }
 
   //-----------------------------------Sleep----------------------------------------
-  esp_sleep_enable_timer_wakeup(0.2*US_TO_S_FACTOR*60);
+  //esp_sleep_enable_timer_wakeup(0.2*US_TO_S_FACTOR*60); //For testing
+  esp_sleep_enable_timer_wakeup(dss.wake_up_time*US_TO_S_FACTOR*60);
   esp_deep_sleep_start();
 
 }
