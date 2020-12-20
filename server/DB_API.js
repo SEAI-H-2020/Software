@@ -85,6 +85,45 @@ module.exports = function(app, pool) {
         }
     });
 
+    app.post("/measurements/multiple", async(req, res) => {
+        /*
+            Swagger Documentation:
+            #swagger.method = 'post'
+            #swagger.tags = ['Measurements']
+            #swagger.description = 'Add nested jsons to send multiple measurements.'
+            #swagger.parameters['measurements'] = {
+                in: 'body',
+                description: 'multiple measurements from sensor box',
+                required: true,
+                type: 'object',
+                schema: {$ref: "#/definitions/MultipleMeasures"}
+            }
+        */
+        console.log("oyyyy");
+        try {
+            console.log(req.body);
+            let measure_count = 0;
+            const measurements = req.body;
+            var newMeasurement;
+            for (var key in req.body) {
+                console.log(measurements[key]);
+                //console.log(measurements[key]);
+                newMeasurement = await pool.query(
+                    "INSERT INTO measurements (temperature, humidity, wind, noise_level, voltage) \
+                VALUES ($1, $2, $3, $4, $5)", [measurements[key].temperature, measurements[key].humidity,
+                        measurements[key].wind, measurements[key].noise_level, measurements[key].voltage
+                    ]
+                );
+                measure_count++;
+            };
+            result_string = `Inserted ${measure_count} measurements!`;
+            console.log(result_string);
+            res.send(result_string);
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
     // Get most recent measurement
     app.get("/measurements", async(req, res) => {
         /*
