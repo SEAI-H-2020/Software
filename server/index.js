@@ -5,6 +5,7 @@ const app = express();
 const cors = require("cors");
 const json2csv = require("json2csv");
 
+
 const pool = require("./db");
 
 const swaggerUI = require('swagger-ui-express');
@@ -24,6 +25,9 @@ require('./Authentication_API')(app, pool);
 
 //Add authentication APIs
 require('./DB_API')(app, pool);
+
+//Add update APIs
+require('./ota_update')(app, pool);
 
 //Get User Settings
 app.get("/usersettings/:box_id", async(req, res) => {

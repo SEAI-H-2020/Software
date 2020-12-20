@@ -1,12 +1,13 @@
 #include "ssbsettings.h"
+#include "ssbota.h"
 
 
-int get_user_settings(settings_t *usersettings, String endpoint){
+int get_user_settings(settings_t *usersettings, String get_url, String ota_url){
     HTTPClient http;
     String payload;
     int sync_period_updated, sample_period_updated;
 
-    http.begin(endpoint);
+    http.begin(get_url);
     // get json string
     int httpCode = http.GET();
     if (httpCode == 200) {
@@ -37,11 +38,33 @@ int get_user_settings(settings_t *usersettings, String endpoint){
     Serial.print("sample_period = ");
     Serial.print(sample_period_updated);
     Serial.println();
-    http.end();
 
     usersettings->sync_period = sync_period_updated;
     usersettings->sample_period = sample_period_updated;
-    
+
+    float latest_firmware = GETdoc["latest_firmware"];
+
+
+    http.end();
+
+    #ifdef OTA_UPDATE
+      #ifdef FIRMWARE_VERSION
+        Serial.println(FIRMWARE_VERSION);
+        Serial.println(latest_firmware);
+        float curr_firmware = FIRMWARE_VERSION;
+        if (curr_firmware < latest_firmware){
+          Serial.println("Your firmware version is V"+String(curr_firmware) + 
+            ", the latest available firmware version is V"+String(latest_firmware));
+          Serial.println("Installing the new update now...");
+          update_ota(ota_url, latest_firmware);
+        }
+        else{
+          Serial.println("Firmware is up to date");
+        }
+      #else 
+        Serial.println("Firmware version is not defined");
+      #endif
+    #endif
     /*
     I guess q pode-se sempre ir buscar as settings
 
