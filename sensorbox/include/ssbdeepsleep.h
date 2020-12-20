@@ -1,6 +1,7 @@
 #ifndef SSBDEEPSLEEP_H
 
 #include <Arduino.h>
+#include "esp_settings.h"
 
 typedef struct {
     uint16_t wake_up_time = 0;

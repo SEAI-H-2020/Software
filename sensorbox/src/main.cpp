@@ -4,12 +4,8 @@
 #include "ssbsettings.h"
 #include "ssbsensors.h"
 #include "ssbdeepsleep.h"
+#include "esp_settings.h"
 
-#define MAX_SYNC_PERIOD 30
-#define MAX_SAMPLE_PERIOD 600
-#define MAX_MEASUREMENTS MAX_SAMPLE_PERIOD/MAX_SYNC_PERIOD
-#define RESET_WIFI_SETTINGS 0
-#define INITIAL_DELAY 0         // initial delay of 5sec before printing out stuff
 #define US_TO_S_FACTOR 1e6
 
 //Wifi connection and AP settings
@@ -21,8 +17,9 @@ const char* APpass = "softwareH";
 String box_id = "1";
 
 //Server Settings
-String POST_url = "http://smartsensorbox.ddns.net:5000/measurements/multiple";
-String GET_url = "http://smartsensorbox.ddns.net:5000/usersettings/" + box_id;
+String POST_url = "http://192.168.1.100:5000/measurements/multiple";
+String GET_url = "http://192.168.1.100:5000/usersettings/" + box_id;
+String OTA_url = "http://192.168.1.100:5000/update";
 
 //RTC Variables
 RTC_DATA_ATTR settings_t usersettings;
@@ -40,16 +37,16 @@ void RTC_IRAM_ATTR esp_wake_deep_sleep(void) {
 
 void setup() {  
   // WiFiManager stuff
-  #if RESET_WIFI_SETTINGS
+  #ifdef RESET_WIFI_SETTINGS
   wm.resetSettings(); // wipe settings
   #endif
   std::vector<const char *> menu = {"wifi","info","sep","restart","exit"};
   wm.setMenu(menu);
 
-  //--------------------------------Serial Setup-----------------------------------
+  //-----------------------------Serial Setup-------------------------------------
   Serial.begin(9600);
   //Serial.setDebugOutput(true);  
-  #if INITIAL_DELAY
+  #ifdef INITIAL_DELAY
   delay(5000);
   #endif
   
@@ -57,6 +54,8 @@ void setup() {
 
   //-----------------------------HARDWARE SETUP----------------------------------
   setup_ws_sensor();
+  //-------------------------------OTA-------------------------------------------
+
 
   //------------------------------Sample-----------------------------------------
   debug_sample_counter(dss, wake_up_counter);
@@ -120,7 +119,7 @@ void setup() {
     }
 
     //-------------------------User Settings ------------------------------------
-    res = get_user_settings(&usersettings, GET_url);
+    res = get_user_settings(&usersettings, GET_url, OTA_url);
     if (!res){
       dss.wake_up_time = min(usersettings.sync_period, usersettings.sample_period);
       dss.sample_counter = usersettings.sample_period/dss.wake_up_time;
@@ -144,10 +143,9 @@ void setup() {
   }
 
   //-----------------------------------Sleep----------------------------------------
-  //esp_sleep_enable_timer_wakeup(0.2*US_TO_S_FACTOR*60); //For testing
-  esp_sleep_enable_timer_wakeup(dss.wake_up_time*US_TO_S_FACTOR*60);
+  esp_sleep_enable_timer_wakeup(0.05*US_TO_S_FACTOR*60); //For testing
+  //esp_sleep_enable_timer_wakeup(dss.wake_up_time*US_TO_S_FACTOR*60);
   esp_deep_sleep_start();
-
 }
 
 void loop() {

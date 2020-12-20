@@ -47,7 +47,8 @@ const doc = {
             $sync_period: 10,
             $sample_time: 5,
             $shutdown_on_wakeup: true,
-            $username: "banana"
+            $username: "banana",
+            $latest_firmware: 0.2
         }
     },
     MultipleMeasures: [{
