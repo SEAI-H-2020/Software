@@ -51,7 +51,22 @@ const doc = {
             $sample_time: 5,
             $shutdown_on_wakeup: true,
             $username: "banana"
-        }
+        },
+        MultipleMeasures: [
+            {
+                $temperature: 11,
+                $humidity: 80,
+                $wind: 2.5,
+                $noise_level: 65,
+                $voltage: 3.3
+            },{
+                $temperature: 15,
+                $humidity: 80,
+                $wind: 2.3,
+                $noise_level: 85,
+                $voltage: 3.2
+            }
+        ]
     }
 }
 

@@ -41,7 +41,7 @@
         "tags": [
           "Measurements"
         ],
-        "description": "Endpoint to upload sensor data.",
+        "description": "Endpoint to upload a single measurement.",
         "parameters": [
           {
             "name": "sensorData",
@@ -70,6 +70,27 @@
         ],
         "description": "Deletes all measurements!! \n WARNING: Use with caution",
         "parameters": [],
+        "responses": {}
+      }
+    },
+    "/measurements/multiple": {
+      "post": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Add nested jsons to send multiple measurements.",
+        "parameters": [
+          {
+            "name": "measurements",
+            "in": "body",
+            "description": "multiple measurements from sensor box",
+            "required": true,
+            "type": "object",
+            "schema": {
+              "$ref": "#/definitions/MultipleMeasures"
+            }
+          }
+        ],
         "responses": {}
       }
     },
@@ -120,7 +141,7 @@
             "required": true,
             "type": "object",
             "schema": {
-              "$ref": "#/definitions/NewMeasurement"
+              "$ref": "#/definitions/NewUserSetting"
             }
           }
         ],
@@ -214,6 +235,372 @@
         ],
         "responses": {}
       }
+    },
+    "/measurements/average/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Measurements average between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/average/{sensor}/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Sensor average measurement between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "sensor",
+            "in": "path",
+            "required": true,
+            "description": "temperature, humidity, wind, noise_level",
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial/average/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Measurements average (in imperial units) between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial/average/{sensor}/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Sensor average measurement (in imperial units) between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "sensor",
+            "in": "path",
+            "required": true,
+            "description": "temperature, humidity, wind, noise_level",
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Gets most recent measurement (in imperial units)",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/measurements/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Measurements between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Measurement (in imperial units) between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/{sensor}/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Sensor measurement between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "sensor",
+            "in": "path",
+            "required": true,
+            "description": "temperature, humidity, wind, noise_level",
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial/{sensor}/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Sensor measurement (in imperial units) between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "sensor",
+            "in": "path",
+            "required": true,
+            "description": "temperature, humidity, wind, noise_level",
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/{sensor}/min/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Minimum value of sensor measurement between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "sensor",
+            "in": "path",
+            "required": true,
+            "description": "temperature, humidity, wind, noise_level",
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial/{sensor}/min/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Minimum value of sensor measurement (in imperial units) between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "sensor",
+            "in": "path",
+            "required": true,
+            "description": "temperature, humidity, wind, noise_level",
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/{sensor}/max/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Maximum value of sensor measurement between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "sensor",
+            "in": "path",
+            "required": true,
+            "description": "temperature, humidity, wind, noise_level",
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial/{sensor}/max/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Maximum value of sensor measurement (in imperial units) between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "sensor",
+            "in": "path",
+            "required": true,
+            "description": "temperature, humidity, wind, noise_level",
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
     }
   },
   "definitions": {
@@ -280,6 +667,44 @@
       ],
       "xml": {
         "name": "NewUserSetting"
+      }
+    },
+    "MultipleMeasures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "temperature": {
+            "type": "number",
+            "example": 15
+          },
+          "humidity": {
+            "type": "number",
+            "example": 80
+          },
+          "wind": {
+            "type": "number",
+            "example": 2.3
+          },
+          "noise_level": {
+            "type": "number",
+            "example": 85
+          },
+          "voltage": {
+            "type": "number",
+            "example": 3.2
+          }
+        },
+        "required": [
+          "temperature",
+          "humidity",
+          "wind",
+          "noise_level",
+          "voltage"
+        ]
+      },
+      "xml": {
+        "name": "MultipleMeasures"
       }
     }
   }
