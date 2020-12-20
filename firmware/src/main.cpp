@@ -3,6 +3,7 @@
 #include <WiFiManager.h> 
 #include "ssbsettings.h"
 #include "ssbsensors.h"
+#include "ssbdeepsleep.h"
 
 #define MAX_MEASUREMENTS 20
 #define RESET_WIFI_SETTINGS 0
@@ -18,7 +19,7 @@ const char* APpass = "softwareH";
 String box_id = "1";
 
 //Server Settings
-String POST_url = "http://localhost:5000/measurements/multiple";
+String POST_url = "http://192.168.1.100:5000/measurements/multiple";
 String GET_url = "http://smartsensorbox.ddns.net:5000/usersettings/" + box_id;
 
 //RTC Variables
@@ -26,9 +27,7 @@ RTC_DATA_ATTR settings_t usersettings;
 RTC_DATA_ATTR bool is_initialized = false;
 RTC_DATA_ATTR uint32_t wake_up_counter = 0;
 RTC_DATA_ATTR measurement_t measurements[MAX_MEASUREMENTS];
-RTC_DATA_ATTR uint16_t wake_up_time = 0;
-RTC_DATA_ATTR uint16_t sample_counter = 1;
-RTC_DATA_ATTR uint16_t sync_counter = 1;
+RTC_DATA_ATTR dssettings_t dss;
 RTC_DATA_ATTR uint8_t num_measurements = 0;
 
 //This function is called after the esp wakes up
@@ -58,15 +57,8 @@ void setup() {
   setup_ws_sensor();
 
   //------------------------------Sample-----------------------------------------
-  Serial.print("wake_up_counter: ");
-  Serial.print(wake_up_counter);
-  Serial.print("\tsample_counter: ");
-  Serial.print(sample_counter);
-  int result = wake_up_counter % sample_counter;
-  Serial.print("\tresult: ");
-  Serial.println(result);
-
-  if ((wake_up_counter % sample_counter == 0) && (is_initialized == true)){
+  debug_sample_counter(dss, wake_up_counter);
+  if ((wake_up_counter % dss.sample_counter == 0) && (is_initialized == true)){
     Serial.println("SAMPLE");
 
     uint8_t idx = num_measurements;
@@ -110,15 +102,9 @@ void setup() {
   }
 
   //--------------------------------Sync-----------------------------------------
-  Serial.print("wake_up_counter: ");
-  Serial.print(wake_up_counter);
-  Serial.print("\tsync_counter: ");
-  Serial.print(sync_counter);
-  result = wake_up_counter % sync_counter;
-  Serial.print("\tresult: ");
-  Serial.println(result);
+  debug_sync_counter(dss, wake_up_counter);
 
-  if ((wake_up_counter % sync_counter == 0) || (is_initialized == false)){
+  if ((wake_up_counter % dss.sync_counter == 0) || (is_initialized == false)){
     Serial.println("SYNC");
     //-------------------------Connect to Wifi----------------------------------
     bool res = wm.autoConnect(APname, APpass);
@@ -134,9 +120,9 @@ void setup() {
     //-------------------------User Settings ------------------------------------
     res = get_user_settings(&usersettings, GET_url);
     if (!res){
-      wake_up_time = min(usersettings.sync_period, usersettings.sample_period);
-      sample_counter = usersettings.sample_period/wake_up_time;
-      sync_counter = usersettings.sync_period/wake_up_time;
+      dss.wake_up_time = min(usersettings.sync_period, usersettings.sample_period);
+      dss.sample_counter = usersettings.sample_period/dss.wake_up_time;
+      dss.sync_counter = usersettings.sync_period/dss.wake_up_time;
       is_initialized = true;
     } 
     else{
@@ -156,7 +142,7 @@ void setup() {
   }
 
   //-----------------------------------Sleep----------------------------------------
-  esp_sleep_enable_timer_wakeup(0.2*US_TO_S_FACTOR*60);
+  esp_sleep_enable_timer_wakeup(dss.wake_up_time*US_TO_S_FACTOR*60);
   esp_deep_sleep_start();
 
 }

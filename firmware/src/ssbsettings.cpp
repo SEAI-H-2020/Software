@@ -6,7 +6,7 @@ int get_user_settings(settings_t *usersettings, String endpoint){
     String payload;
     int sync_period_updated, sample_period_updated;
 
-    http.begin("http://smartsensorbox.ddns.net:5000/usersettings/1");
+    http.begin(endpoint);
     // get json string
     int httpCode = http.GET();
     if (httpCode == 200) {
