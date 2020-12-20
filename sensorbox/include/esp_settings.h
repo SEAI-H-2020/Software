@@ -1,7 +1,7 @@
 #ifndef ESP_SETTINGS_H
 
-#define OTA_UPDATE
-#define FIRMWARE_VERSION 0.2
+//#define OTA_UPDATE
+//#define FIRMWARE_VERSION 0.2
 
 #define MAX_SYNC_PERIOD 30
 #define MAX_SAMPLE_PERIOD 600
