@@ -69,7 +69,9 @@ app.post("/measurements/multiple", async(req, res) => {
             schema: {$ref: "#/definitions/NewMeasurement"}
         }
     */
+   console.log("oyyyy");
     try {
+        console.log(req.body);
         let measure_count = 0;
         const measurements = req.body;
         var newMeasurement;

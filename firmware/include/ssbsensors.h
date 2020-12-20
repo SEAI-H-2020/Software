@@ -15,7 +15,7 @@ typedef struct {
     float voltage;
 } measurement_t;
 
-int post_measurements(measurement_t measurements[], uint8_t num_measurements);
+int post_measurements(measurement_t measurements[], uint8_t num_measurements, String endpoint);
 
 #define SSBSENSORS_H
 #endif

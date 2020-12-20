@@ -1,10 +1,8 @@
 #include "ssbsensors.h"
-/*
-  Can be improved if we send all the data in one request
-*/
-int post_measurements(measurement_t measurements[], uint8_t num_measurements){
+
+int post_measurements(measurement_t measurements[], uint8_t num_measurements, String endpoint){
     HTTPClient http;
-    http.begin("http://smartsensorbox.ddns.net:5000/measurements");
+    http.begin(endpoint);
     http.addHeader("Content-Type", "application/json");
     DynamicJsonDocument POSTdoc(1024); //Adjust size later
     // Add values in the document
@@ -19,9 +17,15 @@ int post_measurements(measurement_t measurements[], uint8_t num_measurements){
     String requestBody;
     // build Json string
     serializeJson(POSTdoc, requestBody);
+    Serial.println("in posting");
     Serial.println(requestBody);
-    // post Json string}
-    int httpResponseCode = http.POST(requestBody);
+    //Serial.println(endpoint);
+    
+    //Debug Stuff
+    //int httpResponseCode = http.POST(requestBody);
+    //Serial.println(httpResponseCode);
+    //Serial.print(http.getString());
+
 
     #if DEBUG
     Serial.print("HTTP payload: ");

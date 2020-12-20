@@ -18,7 +18,7 @@ const char* APpass = "softwareH";
 String box_id = "1";
 
 //Server Settings
-String POST_url = "http://smartsensorbox.ddns.net:5000/measurements";
+String POST_url = "http://localhost:5000/measurements/multiple";
 String GET_url = "http://smartsensorbox.ddns.net:5000/usersettings/" + box_id;
 
 //RTC Variables
@@ -77,7 +77,7 @@ void setup() {
     //Serial.print("voltage = ");
     //Serial.print(voltage);
     //Serial.println();
-    measurements[idx].voltage = 80; //dummy
+    measurements[idx].voltage = 3.3; //dummy
     
     // read temperature and humidity values
     //int chk = DHT11.read(DHT11PIN);
@@ -88,7 +88,7 @@ void setup() {
     //Serial.println(hum, 2);//Serial.println((float)DHT11.humidity, 2);
     //Serial.print("Temperature (C): ");
     //Serial.println(temp, 2);//Serial.println((float)DHT11.temperature, 2);
-    measurements[idx].temp = 11; //dummy
+    measurements[idx].temp = 15; //dummy
     measurements[idx].hum = 80; //dummy
 
     // read sound sensor
@@ -148,8 +148,8 @@ void setup() {
     Serial.print("Number of samples to post");
     Serial.println(num_measurements);
     if (num_measurements > 0){
-      post_measurements(measurements, num_measurements);
-      //add fail check
+      post_measurements(measurements, num_measurements, POST_url);
+      //ToDo: add fail check
       Serial.println("Posted!!");
     }
     num_measurements = 0;
