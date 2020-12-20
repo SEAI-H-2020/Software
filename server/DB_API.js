@@ -15,171 +15,101 @@ module.exports = function(app, pool) {
         return mphWind;
     }
 
-    app.get("/measurements/average/:start/:end", async(req, res) => {
+    // Upload sensor measurements
+    app.post("/measurements", async(req, res) => {
         /*
-        Swagger Documentation:
-        #swagger.tags = ['Measurements']
-        #swagger.method = 'get'
-        #swagger.description = 'Measurements average between the "start" and "end" interval'
-        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
-        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+            Swagger Documentation:
+            #swagger.method = 'post'
+            #swagger.tags = ['Measurements']
+            #swagger.description = 'Endpoint to upload sensor data.'
+            #swagger.parameters['sensorData'] = {
+                in: 'body',
+                description: 'Measurement from sensor box',
+                required: true,
+                type: 'object',
+                schema: {$ref: "#/definitions/NewMeasurement"}
+            }
         */
-        var getStart = [req.params.start];
-        var getEnd = [req.params.end];
+        try {
+            const sensorData = req.body;
+            const newMeasurement = await pool.query(
+                "INSERT INTO measurements (temperature, humidity, wind, noise_level, voltage) \
+            VALUES ($1, $2, $3, $4, $5)", [req.body.temperature, req.body.humidity, req.body.wind,
+                    req.body.noise_level, req.body.voltage
+                ]
+            );
+            res.json(newMeasurement);
+        } catch (err) {
+            console.log(err.message);
+        }
+        console.log(req.body);
+    });
+
+    // Donwload csv 
+    app.get("/csv", async(req, res) => {
+        /*
+            Swagger Documentation:  
+            #swagger.tags = ['Export']
+            #swagger.description = 'Exports all sensor measurements in csv format'
+        */
+        try {
+            const queryres = await pool.query(
+                "SELECT * from measurements"
+            );
+            // ToDo: Add checks for csv integrity
+            const csv = json2csv.parse(queryres.rows);
+            res.header('Content-Type', 'text/csv');
+            res.attachment(fileName);
+            res.send(csv);
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    //  Clear database 
+    app.delete("/measurements", async(req, res) => {
+        /*
+            Swagger Documentation:
+            #swagger.method = 'delete'
+            #swagger.tags = ['Measurements']
+            #swagger.description = 'Deletes all measurements!! \n WARNING: Use with caution'
+        */
+
+        try {
+            const queryres = await pool.query(
+                "DELETE from measurements"
+            );
+            res.json(queryres);
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    // Get most recent measurement
+    app.get("/measurements", async(req, res) => {
+        /*
+            Swagger Documentation:
+            #swagger.method = 'get'
+            #swagger.tags = ['Measurements']
+            #swagger.description = 'Gets most recent measurement'
+        */
 
         try {
             const newMeasurement = await pool.query(
-                "SELECT ROUND(AVG(temperature)::numeric,2) as avg_temperature, ROUND(AVG(humidity)::numeric,2) as avg_humidity, ROUND(AVG(wind)::numeric,2) as avg_wind, ROUND(AVG(noise_level )::numeric,2) as avg_noise_level " +
-                "from measurements " +
-                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+                "SELECT * from measurements ORDER BY measurements.tstamp DESC LIMIT 1"
             );
-            newMeasurement.rows[0].avg_temperature = parseFloat(newMeasurement.rows[0].avg_temperature);
-            newMeasurement.rows[0].avg_humidity = parseFloat(newMeasurement.rows[0].avg_humidity);
-            newMeasurement.rows[0].avg_wind = parseFloat(newMeasurement.rows[0].avg_wind);
-            newMeasurement.rows[0].avg_noise_level = parseFloat(newMeasurement.rows[0].avg_noise_level);
-            //res.json(newMeasurement.rows);
             var jsonResult = JSON.stringify(newMeasurement.rows);
 
             var preamble = "{ \"measurement\" : ";
             jsonResult = preamble + jsonResult + "}";
             jsonResult = JSON.parse(jsonResult);
 
-            console.log(jsonResult);
+            //console.log(jsonResult);
             res.json(jsonResult);
-
         } catch (err) {
             console.log(err.message);
         }
     });
-
-    app.get("/measurements/average/:sensor/:start/:end", async(req, res) => {
-        /*
-        Swagger Documentation:
-        #swagger.tags = ['Measurements']
-        #swagger.method = 'get'
-        #swagger.description = 'Sensor average measurement between the "start" and "end" interval'
-        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
-        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
-        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
-        */
-        var getSensor = [req.params.sensor];
-        var getStart = [req.params.start];
-        var getEnd = [req.params.end];
-
-        try {
-            const query = "SELECT ROUND(AVG(" + getSensor + ")::numeric,2)  as avg_" + getSensor +
-                " from measurements " +
-                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';";
-            //console.log(query);
-
-            const newMeasurement = await pool.query(query);
-            if (getSensor == "temperature") {
-                newMeasurement.rows[0].avg_temperature = parseFloat(newMeasurement.rows[0].avg_temperature);
-            } else if (getSensor == "humidity") {
-                newMeasurement.rows[0].avg_humidity = parseFloat(newMeasurement.rows[0].avg_humidity);
-            } else if (getSensor == "wind") {
-                newMeasurement.rows[0].avg_wind = parseFloat(newMeasurement.rows[0].avg_wind);
-            } else if (getSensor == "noise_level") {
-                newMeasurement.rows[0].avg_noise_level = parseFloat(newMeasurement.rows[0].avg_noise_level);
-            }
-
-            res.json(newMeasurement.rows);
-
-        } catch (err) {
-            console.log(err.message);
-        }
-    });
-
-    //Average imperial Measurements between 'start' and 'end'
-    app.get("/measurements/imperial/average/:start/:end", async(req, res) => {
-        /*
-        Swagger Documentation:
-        #swagger.tags = ['Measurements']
-        #swagger.method = 'get'
-        #swagger.description = 'Measurements average (in imperial units) between the "start" and "end" interval'
-        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
-        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
-        */
-        var getStart = [req.params.start];
-        var getEnd = [req.params.end];
-
-        try {
-            const newMeasurement = await pool.query(
-                "SELECT ROUND(AVG(temperature)::numeric,2) as avg_temperature, ROUND(AVG(humidity)::numeric,2) as avg_humidity, ROUND(AVG(wind)::numeric,2) as avg_wind, ROUND(AVG(noise_level )::numeric,2) as avg_noise_level " +
-                "from measurements " +
-                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
-            );
-
-            var cTemperature = newMeasurement.rows[0].avg_temperature;
-            var mpsWind = newMeasurement.rows[0].avg_wind;
-
-            //Celsius -> Fahrenheit 
-            var fTemperature = CelsiustoFahrenheit(cTemperature);
-
-            //Meters per second -> Miles per hour
-            var mphWind = MPStoMPH(mpsWind);
-
-            newMeasurement.rows[0].avg_temperature = fTemperature;
-            newMeasurement.rows[0].avg_humidity = parseFloat(newMeasurement.rows[0].avg_humidity);
-            newMeasurement.rows[0].avg_wind = mphWind;
-            newMeasurement.rows[0].avg_noise_level = parseFloat(newMeasurement.rows[0].avg_noise_level);
-            res.json(newMeasurement.rows);
-
-        } catch (err) {
-            console.log(err.message);
-        }
-    });
-
-    //Average sensor easurements between 'start' and 'end'
-    app.get("/measurements/imperial/average/:sensor/:start/:end", async(req, res) => {
-        /*
-        Swagger Documentation:
-        #swagger.tags = ['Measurements']
-        #swagger.method = 'get'
-        #swagger.description = 'Sensor average measurement (in imperial units) between the "start" and "end" interval'
-        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
-        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
-        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
-        */
-        var getSensor = [req.params.sensor];
-        var getStart = [req.params.start];
-        var getEnd = [req.params.end];
-
-        try {
-            const query = "SELECT ROUND(AVG(" + getSensor + ")::numeric,2) as avg_" + getSensor +
-                " from measurements " +
-                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';";
-            //console.log(query);
-            const newMeasurement = await pool.query(query);
-
-            var cTemperature = 0;
-            var mpsWind = 0;
-            var fTemperature = 0;
-            var mphWind = 0;
-
-            if (getSensor == "temperature") {
-                //Celsius -> Fahrenheit 
-                cTemperature = newMeasurement.rows[0].avg_temperature;
-                fTemperature = CelsiustoFahrenheit(cTemperature);
-                newMeasurement.rows[0].avg_temperature = fTemperature;
-            } else if (getSensor == "wind") {
-                //Meters per second -> Miles per hour
-                mpsWind = newMeasurement.rows[0].avg_wind;
-                mphWind = MPStoMPH(mpsWind);
-                newMeasurement.rows[0].avg_wind = mphWind;
-            } else if (getSensor == "humidity") {
-                newMeasurement.rows[0].avg_humidity = parseFloat(newMeasurement.rows[0].avg_humidity);
-            } else if (getSensor == "noise_level") {
-                newMeasurement.rows[0].avg_noise_level = parseFloat(newMeasurement.rows[0].avg_noise_level);
-            }
-
-            res.json(newMeasurement.rows);
-
-        } catch (err) {
-            console.log(err.message);
-        }
-    });
-
 
     // converts latest measurement from metric to imperial
     app.get("/measurements/imperial", async(req, res) => {
@@ -205,7 +135,205 @@ module.exports = function(app, pool) {
 
             newMeasurement.rows[0].temperature = fTemperature;
             newMeasurement.rows[0].wind = mphWind;
-            res.json(newMeasurement.rows);
+
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            ////console.log(jsonResult);
+            res.json(jsonResult);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    app.get("/measurements/average/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Measurements average between the "start" and "end" interval'
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
+
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT ROUND(AVG(temperature)::numeric,2) as temperature, ROUND(AVG(humidity)::numeric,2) as humidity, ROUND(AVG(wind)::numeric,2) as wind, ROUND(AVG(noise_level )::numeric,2) as noise_level " +
+                "from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+            );
+            newMeasurement.rows[0].temperature = parseFloat(newMeasurement.rows[0].temperature);
+            newMeasurement.rows[0].humidity = parseFloat(newMeasurement.rows[0].humidity);
+            newMeasurement.rows[0].wind = parseFloat(newMeasurement.rows[0].wind);
+            newMeasurement.rows[0].noise_level = parseFloat(newMeasurement.rows[0].noise_level);
+            //res.json(newMeasurement.rows);
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            // //console.log(jsonResult);
+            res.json(jsonResult);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    //Average imperial Measurements between 'start' and 'end'
+    app.get("/measurements/imperial/average/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Measurements average (in imperial units) between the "start" and "end" interval'
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
+
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT ROUND(AVG(temperature)::numeric,2) as temperature, ROUND(AVG(humidity)::numeric,2) as humidity, ROUND(AVG(wind)::numeric,2) as wind, ROUND(AVG(noise_level )::numeric,2) as noise_level " +
+                "from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+            );
+
+            var cTemperature = newMeasurement.rows[0].temperature;
+            var mpsWind = newMeasurement.rows[0].wind;
+
+            //Celsius -> Fahrenheit 
+            var fTemperature = CelsiustoFahrenheit(cTemperature);
+
+            //Meters per second -> Miles per hour
+            var mphWind = MPStoMPH(mpsWind);
+
+            newMeasurement.rows[0].temperature = fTemperature;
+            newMeasurement.rows[0].humidity = parseFloat(newMeasurement.rows[0].humidity);
+            newMeasurement.rows[0].wind = mphWind;
+            newMeasurement.rows[0].noise_level = parseFloat(newMeasurement.rows[0].noise_level);
+
+            newMeasurement.rows[0].id = 1;
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            ////console.log(jsonResult);
+            res.json(jsonResult);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    app.get("/measurements/:sensor/average/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Sensor average measurement between the "start" and "end" interval'
+        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getSensor = [req.params.sensor];
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
+
+        try {
+            const query = "SELECT ROUND(AVG(" + getSensor + ")::numeric,2)  as " + getSensor +
+                " from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';";
+            //console.log(query);
+
+            const newMeasurement = await pool.query(query);
+
+            if (getSensor == "temperature") {
+                newMeasurement.rows[0].temperature = parseFloat(newMeasurement.rows[0].temperature);
+            } else if (getSensor == "humidity") {
+                newMeasurement.rows[0].humidity = parseFloat(newMeasurement.rows[0].humidity);
+            } else if (getSensor == "wind") {
+                newMeasurement.rows[0].wind = parseFloat(newMeasurement.rows[0].wind);
+            } else if (getSensor == "noise_level") {
+                newMeasurement.rows[0].noise_level = parseFloat(newMeasurement.rows[0].noise_level);
+            }
+            newMeasurement.rows[0].id = 1;
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            ////console.log(jsonResult);
+            res.json(jsonResult);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
+    //Average sensor easurements between 'start' and 'end'
+    app.get("/measurements/imperial/:sensor/average/:start/:end", async(req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Sensor average measurement (in imperial units) between the "start" and "end" interval'
+        #swagger.parameters['sensor'] = {description: 'temperature, humidity, wind, noise_level', type: 'string'}
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD HH:MM:SS', type: 'string'}
+        #swagger.parameters['end'] = {description: "YYYY-MM-DD HH:MM:SS", type: "string"}
+        */
+        var getSensor = [req.params.sensor];
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
+
+        try {
+            const query = "SELECT ROUND(AVG(" + getSensor + ")::numeric,2) as " + getSensor +
+                " from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';";
+            //console.log(query);
+            const newMeasurement = await pool.query(query);
+
+            var cTemperature = 0;
+            var mpsWind = 0;
+            var fTemperature = 0;
+            var mphWind = 0;
+
+            if (getSensor == "temperature") {
+                //Celsius -> Fahrenheit 
+                cTemperature = newMeasurement.rows[0].temperature;
+                fTemperature = CelsiustoFahrenheit(cTemperature);
+                newMeasurement.rows[0].temperature = fTemperature;
+            } else if (getSensor == "wind") {
+                //Meters per second -> Miles per hour
+                mpsWind = newMeasurement.rows[0].wind;
+                mphWind = MPStoMPH(mpsWind);
+                newMeasurement.rows[0].wind = mphWind;
+            } else if (getSensor == "humidity") {
+                newMeasurement.rows[0].humidity = parseFloat(newMeasurement.rows[0].humidity);
+            } else if (getSensor == "noise_level") {
+                newMeasurement.rows[0].noise_level = parseFloat(newMeasurement.rows[0].noise_level);
+            }
+
+            newMeasurement.rows[0].id = 1;
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            ////console.log(jsonResult);
+            res.json(jsonResult);
 
         } catch (err) {
             console.log(err.message);
@@ -236,7 +364,7 @@ module.exports = function(app, pool) {
             jsonResult = preamble + jsonResult + "}";
             jsonResult = JSON.parse(jsonResult);
 
-            console.log(jsonResult);
+            //console.log(jsonResult);
             res.json(jsonResult);
 
         } catch (err) {
@@ -283,7 +411,14 @@ module.exports = function(app, pool) {
                 newMeasurement.rows[i].wind = mphWind;
             }
 
-            res.json(newMeasurement.rows);
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            //console.log(jsonResult);
+            res.json(jsonResult);
 
         } catch (err) {
             console.log(err.message);
@@ -307,10 +442,19 @@ module.exports = function(app, pool) {
 
         try {
             const newMeasurement = await pool.query(
-                "SELECT " + getSensor + ",tstamp from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+                "SELECT " + getSensor + ",tstamp, id " +
+                "from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
             );
 
-            res.json(newMeasurement.rows);
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            //console.log(jsonResult);
+            res.json(jsonResult);
 
         } catch (err) {
             console.log(err.message);
@@ -334,7 +478,9 @@ module.exports = function(app, pool) {
 
         try {
             const newMeasurement = await pool.query(
-                "SELECT " + getSensor + ",tstamp from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+                "SELECT " + getSensor + ",tstamp, id " +
+                "from measurements " +
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
             );
 
             var i = 0;
@@ -359,7 +505,14 @@ module.exports = function(app, pool) {
                     newMeasurement.rows[i].wind = mphWind;
                 }
             }
-            res.json(newMeasurement.rows);
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            //console.log(jsonResult);
+            res.json(jsonResult);
 
         } catch (err) {
             console.log(err.message);
@@ -382,14 +535,21 @@ module.exports = function(app, pool) {
         var getEnd = [req.params.end];
 
         try {
-            const query = "SELECT " + getSensor + ",tstamp from measurements " +
+            const query = "SELECT " + getSensor + ",tstamp, id from measurements " +
                 "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd +
                 "'AND " + getSensor + " = (select min(" + getSensor + ") from measurements " +
                 "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "');";
             //console.log(query);
 
             const newMeasurement = await pool.query(query);
-            res.json(newMeasurement.rows);
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            //console.log(jsonResult);
+            res.json(jsonResult);
 
         } catch (err) {
             console.log(err.message);
@@ -412,7 +572,7 @@ module.exports = function(app, pool) {
         var getEnd = [req.params.end];
 
         try {
-            const query = "SELECT " + getSensor + ",tstamp from measurements " +
+            const query = "SELECT " + getSensor + ",tstamp, id from measurements " +
                 "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd +
                 "'AND " + getSensor + " = (select min(" + getSensor + ") from measurements " +
                 "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "');";
@@ -442,7 +602,14 @@ module.exports = function(app, pool) {
                 }
             }
 
-            res.json(newMeasurement.rows);
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            //console.log(jsonResult);
+            res.json(jsonResult);
 
         } catch (err) {
             console.log(err.message);
@@ -465,7 +632,7 @@ module.exports = function(app, pool) {
         var getEnd = [req.params.end];
 
         try {
-            const query = "SELECT " + getSensor + ",tstamp from measurements " +
+            const query = "SELECT " + getSensor + ",tstamp, id from measurements " +
                 "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd +
                 "'AND " + getSensor + " = (select MAX(" + getSensor + ") from measurements " +
                 "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "');";
@@ -473,7 +640,14 @@ module.exports = function(app, pool) {
 
             const newMeasurement = await pool.query(query);
 
-            res.json(newMeasurement.rows);
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            //console.log(jsonResult);
+            res.json(jsonResult);
 
         } catch (err) {
             console.log(err.message);
@@ -496,7 +670,7 @@ module.exports = function(app, pool) {
         var getEnd = [req.params.end];
 
         try {
-            const query = "SELECT " + getSensor + ",tstamp from measurements " +
+            const query = "SELECT " + getSensor + ",tstamp, id from measurements " +
                 "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd +
                 "'AND " + getSensor + " = (select MAX(" + getSensor + ") from measurements " +
                 "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "');";
@@ -526,7 +700,14 @@ module.exports = function(app, pool) {
                 }
             }
 
-            res.json(newMeasurement.rows);
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            //console.log(jsonResult);
+            res.json(jsonResult);
 
         } catch (err) {
             console.log(err.message);
