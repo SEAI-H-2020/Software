@@ -25,7 +25,7 @@ require('./Authentication_API')(app, pool);
 //Add authentication APIs
 require('./DB_API')(app, pool);
 
-// Upload sensor measurements
+// Upload sensor measurements (single)
 app.post("/measurements", async(req, res) => {
     /*
         Swagger Documentation:
@@ -53,6 +53,42 @@ app.post("/measurements", async(req, res) => {
         console.log(err.message);
     }
     console.log(req.body);
+});
+
+app.post("/measurements/multiple", async(req, res) => {
+    /*
+        Swagger Documentation:
+        #swagger.method = 'post'
+        #swagger.tags = ['Measurements']
+        #swagger.description = 'Endpoint to upload sensor data.'
+        #swagger.parameters['sensorData'] = {
+            in: 'body',
+            description: 'Measurement from sensor box',
+            required: true,
+            type: 'object',
+            schema: {$ref: "#/definitions/NewMeasurement"}
+        }
+    */
+    try {
+        let measure_count = 0;
+        const measurements = req.body;
+        var newMeasurement;
+        for (key in req.body){
+            console.log(measurements[key]);
+            newMeasurement = await pool.query(
+                "INSERT INTO measurements (temperature, humidity, wind, noise_level, voltage) \
+                VALUES ($1, $2, $3, $4, $5)", [measurements[key].temperature, measurements[key].humidity,
+                    measurements[key].wind, measurements[key].noise_level, measurements[key].voltage
+                ]
+            );
+            measure_count++;
+        };
+        result_string = `Inserted ${measure_count} measurements!`;
+        console.log(result_string);
+        res.send(result_string);
+    } catch (err) {
+        console.log(err.message);
+    }
 });
 
 // Get most recent measurement
