@@ -22,9 +22,9 @@ int post_measurements(measurement_t measurements[], uint8_t num_measurements, St
     //Serial.println(endpoint);
     
     //Debug Stuff
-    //int httpResponseCode = http.POST(requestBody);
-    //Serial.println(httpResponseCode);
-    //Serial.print(http.getString());
+    int httpResponseCode = http.POST(requestBody);
+    Serial.println(httpResponseCode);
+    Serial.print(http.getString());
 
 
     #if DEBUG
