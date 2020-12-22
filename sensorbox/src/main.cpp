@@ -68,7 +68,6 @@ void setup() {
   if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) {
     wake_up_counter--;
     overflow_count++;
-    delay(5000);
     clear_counter();
     Serial.println("Overflowwwwwwww!!!!");
     go_sleep();
