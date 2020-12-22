@@ -1,3 +1,4 @@
+const json2csv = require("json2csv");
 module.exports = function(app, pool) {
     //Celsius -> Fahrenheit 
     function CelsiustoFahrenheit(cTemperature) {
@@ -106,11 +107,10 @@ module.exports = function(app, pool) {
             const measurements = req.body;
             var newMeasurement;
             for (var key in req.body) {
-                console.log(measurements[key]);
                 //console.log(measurements[key]);
                 newMeasurement = await pool.query(
                     "INSERT INTO measurements (temperature, humidity, wind, noise_level, voltage) \
-                VALUES ($1, $2, $3, $4, $5)", [measurements[key].temperature, measurements[key].humidity,
+                    VALUES ($1, $2, $3, $4, $5)", [measurements[key].temperature, measurements[key].humidity,
                         measurements[key].wind, measurements[key].noise_level, measurements[key].voltage
                     ]
                 );

@@ -15,7 +15,6 @@ void setup_ws_sensor(){
 	pinMode(COUNTERQ13 , INPUT);
 	pinMode(COUNTERQ14 , INPUT);
 	pinMode(COUNTER_RESET, OUTPUT);	
-	digitalWrite(COUNTER_RESET, LOW);
 }
 
 void print_counter_state_bin(uint16_t wscounter){
@@ -26,11 +25,9 @@ void print_counter_state_bin(uint16_t wscounter){
 }
 
 void clear_counter(){
-	gpio_hold_dis(COUNTER_RESET_GPIO);
 	digitalWrite(COUNTER_RESET, HIGH);
 	delay(10);
 	digitalWrite(COUNTER_RESET, LOW);
-	gpio_hold_en(COUNTER_RESET_GPIO);
 }
 
 uint16_t read_windspeed_raw(){
@@ -58,7 +55,7 @@ uint16_t read_windspeed_raw(){
 	returns windspeed in m/s
 */
 float calculate_windspeed(uint16_t wscounter, time_t dt){
-	return kph2mps(2.4) *  (float) wscounter / dt;
+	return kph2mps(BASE_SPEED) *  (float) wscounter / dt;
 }
 
 

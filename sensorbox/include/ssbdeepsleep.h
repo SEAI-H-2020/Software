@@ -13,6 +13,8 @@ void debug_sample_counter(dssettings_t dss, uint32_t wake_up_counter);
 
 void debug_sync_counter(dssettings_t dss, uint32_t wake_up_counter);
 
+uint8_t check_wakeup_reason();
+
 
 #define SSBDEEPSLEEP_H
 #endif

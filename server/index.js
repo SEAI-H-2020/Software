@@ -3,8 +3,6 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const json2csv = require("json2csv");
-
 
 const pool = require("./db");
 

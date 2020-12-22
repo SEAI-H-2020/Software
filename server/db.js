@@ -1,6 +1,6 @@
 // Based on https://www.youtube.com/watch?v=ldYcgPKEZC8
 
-const Pool  = require("pg").Pool;
+const Pool = require("pg").Pool;
 
 const pool = new Pool({
     user: "postgres",
