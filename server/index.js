@@ -12,9 +12,6 @@ const swaggerFile = require('./swagger_output.json');
 app.use(cors());
 app.use(express.json());
 
-//File Name for csv export of measurements 
-const fileName = "export.csv";
-
 //Create Swagger GUI
 app.use('/doc', swaggerUI.serve, swaggerUI.setup(swaggerFile))
 
