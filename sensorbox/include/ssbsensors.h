@@ -6,6 +6,7 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include "windsensor.h"
+#include "esp_settings.h"
 
 typedef struct {
     float temp;

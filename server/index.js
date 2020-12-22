@@ -5,6 +5,7 @@ const app = express();
 const cors = require("cors");
 const json2csv = require("json2csv");
 
+
 const pool = require("./db");
 
 const swaggerUI = require('swagger-ui-express');
@@ -24,6 +25,9 @@ require('./Authentication_API')(app, pool);
 
 //Add authentication APIs
 require('./DB_API')(app, pool);
+
+//Add update APIs
+require('./ota_update')(app, pool);
 
 //Get User Settings
 app.get("/usersettings/:box_id", async(req, res) => {
@@ -67,8 +71,8 @@ app.put("/usersettings/:box_id", async(req, res) => {
         console.log("UPDATE request user settings of box: " + req.params.box_id);
         const queryres = await pool.query(
             `UPDATE configurations SET sync_period = $1, sample_time = $2,
-             shutdown_on_wakeup = $3, username = $4 WHERE box = $5`, [req.body.sync_period, req.body.sample_time,
-                req.body.shutdown_on_wakeup, req.body.username, req.params.box_id
+             shutdown_on_wakeup = $3, username = $4, latest_firmware = $5 WHERE box = $6`, [req.body.sync_period, req.body.sample_time,
+                req.body.shutdown_on_wakeup, req.body.username, req.body.latest_firmware, req.params.box_id
             ]
         );
         console.log(queryres)
@@ -98,8 +102,8 @@ app.post("/usersettings/:box_id", async(req, res) => {
         const params = req.params;
         console.log("Insert request user settings of box: " + req.params.box_id);
         const queryres = await pool.query(
-            `INSERT INTO configurations VALUES ($1, $2, $3, $4, $5)`, [req.params.box_id, req.body.sync_period, req.body.sample_time,
-                req.body.shutdown_on_wakeup, req.body.username
+            `INSERT INTO configurations VALUES ($1, $2, $3, $4, $5, $6)`, [req.params.box_id, req.body.sync_period, req.body.sample_time,
+                req.body.shutdown_on_wakeup, req.body.username , req.body.latest_firmware
             ]
         );
         console.log(queryres)
