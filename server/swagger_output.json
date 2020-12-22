@@ -205,7 +205,7 @@
         "responses": {}
       }
     },
-    "/measurements_tstamp1": {
+    "/measurements_tstamp": {
       "post": {
         "tags": [
           "Measurements"
