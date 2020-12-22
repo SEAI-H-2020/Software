@@ -1,6 +1,6 @@
 const json2csv = require("json2csv");
 const fileName = "export.csv";
-module.exports = function(app, pool) {
+module.exports = function (app, pool) {
     //Celsius -> Fahrenheit 
     function CelsiustoFahrenheit(cTemperature) {
         var fTemperature = (cTemperature * 1.8) + 32;
@@ -18,7 +18,7 @@ module.exports = function(app, pool) {
     }
 
     // Upload sensor measurements
-    app.post("/measurements", async(req, res) => {
+    app.post("/measurements", async (req, res) => {
         /*
             Swagger Documentation:
             #swagger.method = 'post'
@@ -37,8 +37,8 @@ module.exports = function(app, pool) {
             const newMeasurement = await pool.query(
                 "INSERT INTO measurements (temperature, humidity, wind, noise_level, voltage) \
             VALUES ($1, $2, $3, $4, $5)", [req.body.temperature, req.body.humidity, req.body.wind,
-                    req.body.noise_level, req.body.voltage
-                ]
+            req.body.noise_level, req.body.voltage
+            ]
             );
             res.json(newMeasurement);
         } catch (err) {
@@ -47,8 +47,40 @@ module.exports = function(app, pool) {
         console.log(req.body);
     });
 
+    // Upload sensor measurements (with timestamp)
+    app.post("/measurements_tstamp", async (req, res) => {
+        /*
+            Swagger Documentation:
+            #swagger.method = 'post'
+            #swagger.tags = ['Measurements']
+            #swagger.description = 'Endpoint to upload sensor data (with timestamp).'
+            #swagger.parameters['sensorData'] = {
+                in: 'body',
+                description: 'Measurement from sensor box',
+                required: true,
+                type: 'object',
+                schema: {$ref: "#/definitions/NewMeasurement"}
+            }
+        */
+        try {
+            const sensorData = req.body;
+            var query = "INSERT INTO measurements (tstamp, temperature, humidity, wind, noise_level, voltage) " +
+            "VALUES ("+ req.body.tstamp + ", " + req.body.temperature + ", " + req.body.humidity + ", " + req.body.wind + ", " + req.body.noise_level + ", " + req.body.voltage + ")";
+            
+            //console.log(query);
+            
+            const newMeasurement = await pool.query(query);
+
+            
+            res.json(newMeasurement);
+        } catch (err) {
+            console.log(err.message);
+        }
+        console.log(req.body);
+    });
+
     // Donwload csv 
-    app.get("/csv", async(req, res) => {
+    app.get("/csv", async (req, res) => {
         /*
             Swagger Documentation:  
             #swagger.tags = ['Export']
@@ -69,7 +101,7 @@ module.exports = function(app, pool) {
     });
 
     //  Clear database 
-    app.delete("/measurements", async(req, res) => {
+    app.delete("/measurements", async (req, res) => {
         /*
             Swagger Documentation:
             #swagger.method = 'delete'
@@ -87,7 +119,7 @@ module.exports = function(app, pool) {
         }
     });
 
-    app.post("/measurements/multiple", async(req, res) => {
+    app.post("/measurements/multiple", async (req, res) => {
         /*
             Swagger Documentation:
             #swagger.method = 'post'
@@ -112,8 +144,8 @@ module.exports = function(app, pool) {
                 newMeasurement = await pool.query(
                     "INSERT INTO measurements (temperature, humidity, wind, noise_level, voltage) \
                     VALUES ($1, $2, $3, $4, $5)", [measurements[key].temperature, measurements[key].humidity,
-                        measurements[key].wind, measurements[key].noise_level, measurements[key].voltage
-                    ]
+                measurements[key].wind, measurements[key].noise_level, measurements[key].voltage
+                ]
                 );
                 measure_count++;
             };
@@ -126,7 +158,7 @@ module.exports = function(app, pool) {
     });
 
     // Get most recent measurement
-    app.get("/measurements", async(req, res) => {
+    app.get("/measurements", async (req, res) => {
         /*
             Swagger Documentation:
             #swagger.method = 'get'
@@ -152,7 +184,7 @@ module.exports = function(app, pool) {
     });
 
     // converts latest measurement from metric to imperial
-    app.get("/measurements/imperial", async(req, res) => {
+    app.get("/measurements/imperial", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -190,7 +222,7 @@ module.exports = function(app, pool) {
         }
     });
 
-    app.get("/measurements/average/:start/:end", async(req, res) => {
+    app.get("/measurements/average/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -228,7 +260,7 @@ module.exports = function(app, pool) {
     });
 
     //Average imperial Measurements between 'start' and 'end'
-    app.get("/measurements/imperial/average/:start/:end", async(req, res) => {
+    app.get("/measurements/imperial/average/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -276,7 +308,7 @@ module.exports = function(app, pool) {
         }
     });
 
-    app.get("/measurements/:sensor/average/:start/:end", async(req, res) => {
+    app.get("/measurements/:sensor/average/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -323,7 +355,7 @@ module.exports = function(app, pool) {
     });
 
     //Average sensor easurements between 'start' and 'end'
-    app.get("/measurements/imperial/:sensor/average/:start/:end", async(req, res) => {
+    app.get("/measurements/imperial/:sensor/average/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -381,7 +413,7 @@ module.exports = function(app, pool) {
     });
 
     //Measurements between 'start' and 'end'
-    app.get("/measurements/:start/:end", async(req, res) => {
+    app.get("/measurements/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -413,7 +445,7 @@ module.exports = function(app, pool) {
     });
 
     //Measurements between 'start' and 'end' in imperial
-    app.get("/measurements/imperial/:start/:end", async(req, res) => {
+    app.get("/measurements/imperial/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -466,7 +498,7 @@ module.exports = function(app, pool) {
     });
 
     //Sensor X measurements between 'start' and 'end'
-    app.get("/measurements/:sensor/:start/:end", async(req, res) => {
+    app.get("/measurements/:sensor/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -502,7 +534,7 @@ module.exports = function(app, pool) {
     });
 
     //Sensor X measurements between 'start' and 'end' in Imperial
-    app.get("/measurements/imperial/:sensor/:start/:end", async(req, res) => {
+    app.get("/measurements/imperial/:sensor/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -560,7 +592,7 @@ module.exports = function(app, pool) {
     });
 
     // Min value of sensor X in interval Y
-    app.get("/measurements/:sensor/min/:start/:end", async(req, res) => {
+    app.get("/measurements/:sensor/min/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -597,7 +629,7 @@ module.exports = function(app, pool) {
     });
 
     // Min value of sensor X in interval Y IMPERIAL
-    app.get("/measurements/imperial/:sensor/min/:start/:end", async(req, res) => {
+    app.get("/measurements/imperial/:sensor/min/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -657,7 +689,7 @@ module.exports = function(app, pool) {
     });
 
     // Max value of sensor X in interval Y
-    app.get("/measurements/:sensor/max/:start/:end", async(req, res) => {
+    app.get("/measurements/:sensor/max/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
@@ -695,7 +727,7 @@ module.exports = function(app, pool) {
     });
 
     // Max value of sensor X in interval Y IMPERIAL
-    app.get("/measurements/imperial/:sensor/max/:start/:end", async(req, res) => {
+    app.get("/measurements/imperial/:sensor/max/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
         #swagger.tags = ['Measurements']
