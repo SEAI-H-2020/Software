@@ -1,4 +1,5 @@
 const json2csv = require("json2csv");
+const fileName = "export.csv";
 module.exports = function(app, pool) {
     //Celsius -> Fahrenheit 
     function CelsiustoFahrenheit(cTemperature) {
