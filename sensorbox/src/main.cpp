@@ -17,9 +17,9 @@ const char* APpass = "softwareH";
 String box_id = "1";
 
 //Server Settings
-String POST_url = "http://192.168.1.100:5000/measurements/multiple";
-String GET_url = "http://192.168.1.100:5000/usersettings/" + box_id;
-String OTA_url = "http://192.168.1.100:5000/update";
+String POST_url = "http://smartsensorbox.ddns.net:5000/measurements/multiple";
+String GET_url =  "http://smartsensorbox.ddns.net:5000/usersettings/" + box_id;
+String OTA_url =  "http://smartsensorbox.ddns.net:5000/update";
 
 //RTC Variables
 RTC_DATA_ATTR settings_t usersettings;
@@ -28,6 +28,15 @@ RTC_DATA_ATTR uint32_t wake_up_counter = 0;
 RTC_DATA_ATTR measurement_t measurements[MAX_MEASUREMENTS];
 RTC_DATA_ATTR dssettings_t dss;
 RTC_DATA_ATTR uint8_t num_measurements = 0;
+RTC_DATA_ATTR uint8_t overflow_count = 0;
+
+void go_sleep(){
+  gpio_hold_en(COUNTER_RESET_GPIO);
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_33, HIGH);
+  esp_sleep_enable_timer_wakeup(0.2*US_TO_S_FACTOR*60); //For testing
+  //esp_sleep_enable_timer_wakeup(dss.wake_up_time*US_TO_S_FACTOR*60);
+  esp_deep_sleep_start();
+}
 
 //This function is called after the esp wakes up
 void RTC_IRAM_ATTR esp_wake_deep_sleep(void) {
@@ -45,7 +54,7 @@ void setup() {
 
   //-----------------------------Serial Setup-------------------------------------
   Serial.begin(9600);
-  //Serial.setDebugOutput(true);  
+  Serial.setDebugOutput(true);  
   #ifdef INITIAL_DELAY
   delay(5000);
   #endif
@@ -54,8 +63,20 @@ void setup() {
 
   //-----------------------------HARDWARE SETUP----------------------------------
   setup_ws_sensor();
-  //-------------------------------OTA-------------------------------------------
-
+  //-----------------------------Figure out wakeup reason-----------------------
+  uint8_t wakeup_reason = check_wakeup_reason();
+  if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) {
+    wake_up_counter--;
+    overflow_count++;
+    delay(5000);
+    clear_counter();
+    Serial.println("Overflowwwwwwww!!!!");
+    go_sleep();
+    /*
+      NOTA! ta-se a descartar os valores entre o overflow e o tempo q micro acorda
+      sera melhor medir o sensor???
+    */
+  }
 
   //------------------------------Sample-----------------------------------------
   debug_sample_counter(dss, wake_up_counter);
@@ -89,13 +110,22 @@ void setup() {
 
     // read windspeed sensor
     uint16_t wscounter = read_windspeed_raw();
-	  measurements[idx].windspeed = calculate_windspeed(wscounter, usersettings.sample_period*60);
+	  measurements[idx].windspeed = calculate_windspeed(wscounter,dss.wake_up_time*60);
+    measurements[idx].windspeed += overflow_count * (2^13);
+    clear_counter();
+
     Serial.println("######### WindSpeed MEASUREMENTS ###########");
 	  Serial.print("BIN: ");
 	  print_counter_state_bin(wscounter);
+    Serial.print("DEC: ");
+	  Serial.println(wscounter);
 	  Serial.print("WS: ");
 	  Serial.println(measurements[idx].windspeed);
-    clear_counter();
+    Serial.print("Num Overflows: ");
+	  Serial.println(overflow_count);
+
+    wscounter = 0;
+    overflow_count = 0;
     //ToDo clear counter on first sync
 
     num_measurements++;
@@ -143,9 +173,7 @@ void setup() {
   }
 
   //-----------------------------------Sleep----------------------------------------
-  esp_sleep_enable_timer_wakeup(0.05*US_TO_S_FACTOR*60); //For testing
-  //esp_sleep_enable_timer_wakeup(dss.wake_up_time*US_TO_S_FACTOR*60);
-  esp_deep_sleep_start();
+  go_sleep();
 }
 
 void loop() {

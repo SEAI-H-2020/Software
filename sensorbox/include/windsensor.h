@@ -14,6 +14,8 @@
 #define COUNTERQ13 32
 #define COUNTERQ14 33
 #define COUNTER_RESET 15
+#define COUNTER_RESET_GPIO GPIO_NUM_15
+#define COUNTER_MSB_GPIO GPIO_NUM_33
 
 // Conversion from km/h to m/s
 #define BASE_SPEED 2.4 // Speed in kph for 1 pulse per second
