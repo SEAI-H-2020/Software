@@ -219,7 +219,7 @@
             "required": true,
             "type": "object",
             "schema": {
-              "$ref": "#/definitions/NewMeasurement"
+              "$ref": "#/definitions/NewMeasurement_tstmap"
             }
           }
         ],
@@ -251,6 +251,27 @@
             "type": "object",
             "schema": {
               "$ref": "#/definitions/MultipleMeasures"
+            }
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements_tstamp/multiple": {
+      "post": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Add nested jsons to send multiple measurements (with timestamp).",
+        "parameters": [
+          {
+            "name": "measurements",
+            "in": "body",
+            "description": "multiple measurements from sensor box",
+            "required": true,
+            "type": "object",
+            "schema": {
+              "$ref": "#/definitions/MultipleMeasures_tstamp"
             }
           }
         ],
@@ -660,6 +681,46 @@
         "name": "NewMeasurement"
       }
     },
+    "NewMeasurement_tstmap": {
+      "type": "object",
+      "properties": {
+        "tstamp": {
+          "type": "string",
+          "example": "'2020-12-22 22:49:39'"
+        },
+        "temperature": {
+          "type": "number",
+          "example": 15
+        },
+        "humidity": {
+          "type": "number",
+          "example": 80
+        },
+        "wind": {
+          "type": "number",
+          "example": 2400
+        },
+        "noise_level": {
+          "type": "number",
+          "example": 65
+        },
+        "voltage": {
+          "type": "number",
+          "example": 3.3
+        }
+      },
+      "required": [
+        "tstamp",
+        "temperature",
+        "humidity",
+        "wind",
+        "noise_level",
+        "voltage"
+      ],
+      "xml": {
+        "name": "NewMeasurement_tstmap"
+      }
+    },
     "NewUserSetting": {
       "type": "object",
       "properties": {
@@ -694,22 +755,87 @@
       "xml": {
         "name": "NewUserSetting"
       }
-    }
-  },
-  "MultipleMeasures": [
-    {
-      "$temperature": 11,
-      "$humidity": 80,
-      "$wind": 2.5,
-      "$noise_level": 65,
-      "$voltage": 3.3
     },
-    {
-      "$temperature": 15,
-      "$humidity": 80,
-      "$wind": 2.3,
-      "$noise_level": 85,
-      "$voltage": 3.2
+    "MultipleMeasures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "temperature": {
+            "type": "number",
+            "example": 15
+          },
+          "humidity": {
+            "type": "number",
+            "example": 80
+          },
+          "wind": {
+            "type": "number",
+            "example": 2.3
+          },
+          "noise_level": {
+            "type": "number",
+            "example": 85
+          },
+          "voltage": {
+            "type": "number",
+            "example": 3.2
+          }
+        },
+        "required": [
+          "temperature",
+          "humidity",
+          "wind",
+          "noise_level",
+          "voltage"
+        ]
+      },
+      "xml": {
+        "name": "MultipleMeasures"
+      }
+    },
+    "MultipleMeasures_tstamp": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tstamp": {
+            "type": "string",
+            "example": "'2020-12-22 22:50:39'"
+          },
+          "temperature": {
+            "type": "number",
+            "example": 15
+          },
+          "humidity": {
+            "type": "number",
+            "example": 80
+          },
+          "wind": {
+            "type": "number",
+            "example": 2.3
+          },
+          "noise_level": {
+            "type": "number",
+            "example": 85
+          },
+          "voltage": {
+            "type": "number",
+            "example": 3.2
+          }
+        },
+        "required": [
+          "tstamp",
+          "temperature",
+          "humidity",
+          "wind",
+          "noise_level",
+          "voltage"
+        ]
+      },
+      "xml": {
+        "name": "MultipleMeasures_tstamp"
+      }
     }
-  ]
+  }
 }

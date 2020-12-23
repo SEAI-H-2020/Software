@@ -18,21 +18,21 @@ const doc = {
     consumes: ['application/json'],
     produces: ['application/json'],
     tags: [{
-        "name": "Measurements",
-        "description": "Endpoints to upload or read measurement data"
-    },
-    {
-        "name": "User Settings",
-        "description": "Modify and view user settings such as sync and sample time"
-    },
-    {
-        "name": "Authentication",
-        "description": "Endpoints to authenticate users and view user data"
-    },
-    {
-        "name": "Export",
-        "description": "Export sensor measurements into different formats"
-    }
+            "name": "Measurements",
+            "description": "Endpoints to upload or read measurement data"
+        },
+        {
+            "name": "User Settings",
+            "description": "Modify and view user settings such as sync and sample time"
+        },
+        {
+            "name": "Authentication",
+            "description": "Endpoints to authenticate users and view user data"
+        },
+        {
+            "name": "Export",
+            "description": "Export sensor measurements into different formats"
+        }
     ],
     definitions: {
         NewMeasurement: {
@@ -43,7 +43,7 @@ const doc = {
             $voltage: 3.3
         },
         NewMeasurement_tstmap: {
-            $tstamp: "'2020-12-22 22:49:39'",
+            $tstamp: 2020-12-22 22:49:39,
             $temperature: 15,
             $humidity: 80,
             $wind: 2400,
@@ -56,37 +56,21 @@ const doc = {
             $shutdown_on_wakeup: true,
             $username: "banana",
             $latest_firmware: 0.2
-        },
-
-        MultipleMeasures: [{
-            $temperature: 11,
-            $humidity: 80,
-            $wind: 2.5,
-            $noise_level: 65,
-            $voltage: 3.3
-        }, {
-            $temperature: 15,
-            $humidity: 80,
-            $wind: 2.3,
-            $noise_level: 85,
-            $voltage: 3.2
-        }],
-        MultipleMeasures_tstamp: [{
-            $tstamp: "'2020-12-22 22:49:39'",
-            $temperature: 11,
-            $humidity: 80,
-            $wind: 2.5,
-            $noise_level: 65,
-            $voltage: 3.3
-        }, {
-            $tstamp: "'2020-12-22 22:50:39'",
-            $temperature: 15,
-            $humidity: 80,
-            $wind: 2.3,
-            $noise_level: 85,
-            $voltage: 3.2
-        }]
-    }
+        }
+    },
+    MultipleMeasures: [{
+        $temperature: 11,
+        $humidity: 80,
+        $wind: 2.5,
+        $noise_level: 65,
+        $voltage: 3.3
+    }, {
+        $temperature: 15,
+        $humidity: 80,
+        $wind: 2.3,
+        $noise_level: 85,
+        $voltage: 3.2
+    }]
 }
 
 

@@ -43,7 +43,7 @@ const doc = {
             $voltage: 3.3
         },
         NewMeasurement_tstmap: {
-            $tstamp: "'2020-12-22 22:49:39'",
+            $tstamp: "2020-12-22 22:49:39",
             $temperature: 15,
             $humidity: 80,
             $wind: 2400,
@@ -65,21 +65,6 @@ const doc = {
             $noise_level: 65,
             $voltage: 3.3
         }, {
-            $temperature: 15,
-            $humidity: 80,
-            $wind: 2.3,
-            $noise_level: 85,
-            $voltage: 3.2
-        }],
-        MultipleMeasures_tstamp: [{
-            $tstamp: "'2020-12-22 22:49:39'",
-            $temperature: 11,
-            $humidity: 80,
-            $wind: 2.5,
-            $noise_level: 65,
-            $voltage: 3.3
-        }, {
-            $tstamp: "'2020-12-22 22:50:39'",
             $temperature: 15,
             $humidity: 80,
             $wind: 2.3,
