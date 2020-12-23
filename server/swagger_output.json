@@ -36,74 +36,6 @@
     "application/json"
   ],
   "paths": {
-    "/measurements": {
-      "post": {
-        "tags": [
-          "Measurements"
-        ],
-        "description": "Endpoint to upload a single measurement.",
-        "parameters": [
-          {
-            "name": "sensorData",
-            "in": "body",
-            "description": "Measurement from sensor box",
-            "required": true,
-            "type": "object",
-            "schema": {
-              "$ref": "#/definitions/NewMeasurement"
-            }
-          }
-        ],
-        "responses": {}
-      },
-      "get": {
-        "tags": [
-          "Measurements"
-        ],
-        "description": "Gets most recent measurement",
-        "parameters": [],
-        "responses": {}
-      },
-      "delete": {
-        "tags": [
-          "Measurements"
-        ],
-        "description": "Deletes all measurements!! \n WARNING: Use with caution",
-        "parameters": [],
-        "responses": {}
-      }
-    },
-    "/measurements/multiple": {
-      "post": {
-        "tags": [
-          "Measurements"
-        ],
-        "description": "Add nested jsons to send multiple measurements.",
-        "parameters": [
-          {
-            "name": "measurements",
-            "in": "body",
-            "description": "multiple measurements from sensor box",
-            "required": true,
-            "type": "object",
-            "schema": {
-              "$ref": "#/definitions/MultipleMeasures"
-            }
-          }
-        ],
-        "responses": {}
-      }
-    },
-    "/csv": {
-      "get": {
-        "tags": [
-          "Export"
-        ],
-        "description": "Exports all sensor measurements in csv format",
-        "parameters": [],
-        "responses": {}
-      }
-    },
     "/usersettings/{box_id}": {
       "get": {
         "tags": [
@@ -236,6 +168,105 @@
         "responses": {}
       }
     },
+    "/measurements": {
+      "post": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Endpoint to upload sensor data.",
+        "parameters": [
+          {
+            "name": "sensorData",
+            "in": "body",
+            "description": "Measurement from sensor box",
+            "required": true,
+            "type": "object",
+            "schema": {
+              "$ref": "#/definitions/NewMeasurement"
+            }
+          }
+        ],
+        "responses": {}
+      },
+      "delete": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Deletes all measurements!! \n WARNING: Use with caution",
+        "parameters": [],
+        "responses": {}
+      },
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Gets most recent measurement",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/measurements_tstamp": {
+      "post": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Endpoint to upload sensor data (with timestamp).",
+        "parameters": [
+          {
+            "name": "sensorData",
+            "in": "body",
+            "description": "Measurement from sensor box",
+            "required": true,
+            "type": "object",
+            "schema": {
+              "$ref": "#/definitions/NewMeasurement"
+            }
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/csv": {
+      "get": {
+        "tags": [
+          "Export"
+        ],
+        "description": "Exports all sensor measurements in csv format",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/measurements/multiple": {
+      "post": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Add nested jsons to send multiple measurements.",
+        "parameters": [
+          {
+            "name": "measurements",
+            "in": "body",
+            "description": "multiple measurements from sensor box",
+            "required": true,
+            "type": "object",
+            "schema": {
+              "$ref": "#/definitions/MultipleMeasures"
+            }
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Gets most recent measurement (in imperial units)",
+        "parameters": [],
+        "responses": {}
+      }
+    },
     "/measurements/average/{start}/{end}": {
       "get": {
         "tags": [
@@ -243,38 +274,6 @@
         ],
         "description": "Measurements average between the \"start\" and \"end\" interval",
         "parameters": [
-          {
-            "name": "start",
-            "in": "path",
-            "required": true,
-            "description": "YYYY-MM-DD HH:MM:SS",
-            "type": "string"
-          },
-          {
-            "name": "end",
-            "in": "path",
-            "required": true,
-            "description": "YYYY-MM-DD HH:MM:SS",
-            "type": "string"
-          }
-        ],
-        "responses": {}
-      }
-    },
-    "/measurements/average/{sensor}/{start}/{end}": {
-      "get": {
-        "tags": [
-          "Measurements"
-        ],
-        "description": "Sensor average measurement between the \"start\" and \"end\" interval",
-        "parameters": [
-          {
-            "name": "sensor",
-            "in": "path",
-            "required": true,
-            "description": "temperature, humidity, wind, noise_level",
-            "type": "string"
-          },
           {
             "name": "start",
             "in": "path",
@@ -318,7 +317,39 @@
         "responses": {}
       }
     },
-    "/measurements/imperial/average/{sensor}/{start}/{end}": {
+    "/measurements/{sensor}/average/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Sensor average measurement between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "sensor",
+            "in": "path",
+            "required": true,
+            "description": "temperature, humidity, wind, noise_level",
+            "type": "string"
+          },
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD HH:MM:SS",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial/{sensor}/average/{start}/{end}": {
       "get": {
         "tags": [
           "Measurements"
@@ -347,16 +378,6 @@
             "type": "string"
           }
         ],
-        "responses": {}
-      }
-    },
-    "/measurements/imperial": {
-      "get": {
-        "tags": [
-          "Measurements"
-        ],
-        "description": "Gets most recent measurement (in imperial units)",
-        "parameters": [],
         "responses": {}
       }
     },
@@ -657,55 +678,38 @@
         "username": {
           "type": "string",
           "example": "banana"
+        },
+        "latest_firmware": {
+          "type": "number",
+          "example": 0.2
         }
       },
       "required": [
         "sync_period",
         "sample_time",
         "shutdown_on_wakeup",
-        "username"
+        "username",
+        "latest_firmware"
       ],
       "xml": {
         "name": "NewUserSetting"
       }
-    },
-    "MultipleMeasures": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "temperature": {
-            "type": "number",
-            "example": 15
-          },
-          "humidity": {
-            "type": "number",
-            "example": 80
-          },
-          "wind": {
-            "type": "number",
-            "example": 2.3
-          },
-          "noise_level": {
-            "type": "number",
-            "example": 85
-          },
-          "voltage": {
-            "type": "number",
-            "example": 3.2
-          }
-        },
-        "required": [
-          "temperature",
-          "humidity",
-          "wind",
-          "noise_level",
-          "voltage"
-        ]
-      },
-      "xml": {
-        "name": "MultipleMeasures"
-      }
     }
-  }
+  },
+  "MultipleMeasures": [
+    {
+      "$temperature": 11,
+      "$humidity": 80,
+      "$wind": 2.5,
+      "$noise_level": 65,
+      "$voltage": 3.3
+    },
+    {
+      "$temperature": 15,
+      "$humidity": 80,
+      "$wind": 2.3,
+      "$noise_level": 85,
+      "$voltage": 3.2
+    }
+  ]
 }
