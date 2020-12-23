@@ -59,7 +59,7 @@ module.exports = function (app, pool) {
                 description: 'Measurement from sensor box',
                 required: true,
                 type: 'object',
-                schema: {$ref: "#/definitions/NewMeasurement"}
+                schema: {$ref: "#/definitions/NewMeasurement_tstmap"}
             }
         */
         try {
@@ -67,7 +67,7 @@ module.exports = function (app, pool) {
             var query = "INSERT INTO measurements (tstamp, temperature, humidity, wind, noise_level, voltage) " +
             "VALUES ("+ req.body.tstamp + ", " + req.body.temperature + ", " + req.body.humidity + ", " + req.body.wind + ", " + req.body.noise_level + ", " + req.body.voltage + ")";
             
-            //console.log(query);
+            console.log(query);
             
             const newMeasurement = await pool.query(query);
 
@@ -144,6 +144,43 @@ module.exports = function (app, pool) {
                 newMeasurement = await pool.query(
                     "INSERT INTO measurements (temperature, humidity, wind, noise_level, voltage) \
                     VALUES ($1, $2, $3, $4, $5)", [measurements[key].temperature, measurements[key].humidity,
+                measurements[key].wind, measurements[key].noise_level, measurements[key].voltage
+                ]
+                );
+                measure_count++;
+            };
+            result_string = `Inserted ${measure_count} measurements!`;
+            console.log(result_string);
+            res.send(result_string);
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+    app.post("/measurements_tstamp/multiple", async (req, res) => {
+        /*
+            Swagger Documentation:
+            #swagger.method = 'post'
+            #swagger.tags = ['Measurements']
+            #swagger.description = 'Add nested jsons to send multiple measurements (with timestamp).'
+            #swagger.parameters['measurements'] = {
+                in: 'body',
+                description: 'multiple measurements from sensor box',
+                required: true,
+                type: 'object',
+                schema: {$ref: "#/definitions/MultipleMeasures_tstamp"}
+            }
+        */
+        console.log("oyyyy");
+        try {
+            console.log(req.body);
+            let measure_count = 0;
+            const measurements = req.body;
+            var newMeasurement;
+            for (var key in req.body) {
+                //console.log(measurements[key]);
+                newMeasurement = await pool.query(
+                    "INSERT INTO measurements (tstamp, temperature, humidity, wind, noise_level, voltage) \
+                    VALUES ($1, $2, $3, $4, $5, $6)", [measurements[key].tstamp, measurements[key].temperature, measurements[key].humidity,
                 measurements[key].wind, measurements[key].noise_level, measurements[key].voltage
                 ]
                 );
