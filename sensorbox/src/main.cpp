@@ -1,12 +1,22 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiManager.h> 
+#include "soc/timer_group_reg.h"
+#include "esp_attr.h"
+#include "esp_intr_alloc.h"
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
+#include "soc/frc_timer_reg.h"
+#include "rom/ets_sys.h"
 #include "ssbsettings.h"
 #include "ssbsensors.h"
 #include "ssbdeepsleep.h"
 #include "esp_settings.h"
 
 #define US_TO_S_FACTOR 1e6
+
+/* frequency of RTC slow clock, Hz */
+#define RTC_CTNL_SLOWCLK_FREQ   150000
 
 //Wifi connection and AP settings
 WiFiManager wm;
@@ -22,6 +32,7 @@ String GET_url =  "http://smartsensorbox.ddns.net:5000/usersettings/" + box_id;
 String OTA_url =  "http://smartsensorbox.ddns.net:5000/update";
 
 //RTC Variables
+RTC_DATA_ATTR uint64_t lastsleep_time;
 RTC_DATA_ATTR settings_t usersettings;
 RTC_DATA_ATTR bool is_initialized = false;
 RTC_DATA_ATTR uint32_t wake_up_counter = 0;
@@ -30,12 +41,24 @@ RTC_DATA_ATTR dssettings_t dss;
 RTC_DATA_ATTR uint8_t num_measurements = 0;
 RTC_DATA_ATTR uint8_t overflow_count = 0;
 
-void go_sleep(){
-  gpio_hold_en(COUNTER_RESET_GPIO);
-  esp_sleep_enable_ext0_wakeup(GPIO_NUM_33, HIGH);
-  esp_sleep_enable_timer_wakeup(0.2*US_TO_S_FACTOR*60); //For testing
-  //esp_sleep_enable_timer_wakeup(dss.wake_up_time*US_TO_S_FACTOR*60);
-  esp_deep_sleep_start();
+// Based on https://github.com/pycom/esp-idf-2.0/blob/master/components/newlib/time.c
+uint64_t get_rtc_time_us(){
+    SET_PERI_REG_MASK(RTC_CNTL_TIME_UPDATE_REG, RTC_CNTL_TIME_UPDATE_M);
+    while (GET_PERI_REG_MASK(RTC_CNTL_TIME_UPDATE_REG, RTC_CNTL_TIME_VALID_M) == 0) {
+        ;
+    }
+    CLEAR_PERI_REG_MASK(RTC_CNTL_TIME_UPDATE_REG, RTC_CNTL_TIME_UPDATE_M);
+    uint64_t low = READ_PERI_REG(RTC_CNTL_TIME0_REG);
+    uint64_t high = READ_PERI_REG(RTC_CNTL_TIME1_REG);
+    uint64_t ticks = (high << 32) | low;
+    return ticks * 100 / (RTC_CTNL_SLOWCLK_FREQ/ 10000);    // scale RTC_CTNL_SLOWCLK_FREQ to avoid overflow
+}
+
+
+void IRAM_ATTR isr(){
+  overflow_count += 1;
+  clear_counter();
+  delay(10); //to prevent bouncing remove later
 }
 
 //This function is called after the esp wakes up
@@ -63,6 +86,7 @@ void setup() {
 
   //-----------------------------HARDWARE SETUP----------------------------------
   setup_ws_sensor();
+  attachInterrupt(GPIO_NUM_33, isr, RISING); 
   //-----------------------------Figure out wakeup reason-----------------------
   uint8_t wakeup_reason = check_wakeup_reason();
   if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) {
@@ -70,18 +94,25 @@ void setup() {
     overflow_count++;
     clear_counter();
     Serial.println("Overflowwwwwwww!!!!");
-    go_sleep();
-    /*
-      NOTA! ta-se a descartar os valores entre o overflow e o tempo q micro acorda
-      sera melhor medir o sensor???
-    */
+    uint64_t elapsed_time_us = get_rtc_time_us()-lastsleep_time;
+    uint64_t remaining_time = (uint64_t)dss.wake_up_time * 60 * US_TO_S_FACTOR - elapsed_time_us;
+
+    //Debug
+    long remaining_sleep_us = (long) remaining_time;
+    Serial.print("Remaining time:");
+    Serial.println(remaining_sleep_us);
+
+    //Sleep for the remaining time
+    gpio_hold_en(COUNTER_RESET_GPIO);
+    esp_sleep_enable_ext0_wakeup(GPIO_NUM_33, HIGH);
+    esp_sleep_enable_timer_wakeup(remaining_time);
+    esp_deep_sleep_start();
   }
 
   //------------------------------Sample-----------------------------------------
   debug_sample_counter(dss, wake_up_counter);
   if ((wake_up_counter % dss.sample_counter == 0) && (is_initialized == true)){
     Serial.println("SAMPLE");
-
     uint8_t idx = num_measurements;
 
     //// read battery voltage level
@@ -161,9 +192,9 @@ void setup() {
     }
 
     //-------------------------Post user settings--------------------------------
-    Serial.print("Number of samples to post");
-    Serial.println(num_measurements);
     if (num_measurements > 0){
+      Serial.print("Number of samples to post");
+      Serial.println(num_measurements);
       post_measurements(measurements, num_measurements, POST_url);
       //ToDo: add fail check
       Serial.println("Posted!!");
@@ -171,8 +202,17 @@ void setup() {
     num_measurements = 0;
   }
 
+  float uptime = (float)esp_timer_get_time()*1e-6;
+  Serial.print("Program duration:");
+  Serial.println(uptime);
+
   //-----------------------------------Sleep----------------------------------------
-  go_sleep();
+  gpio_hold_en(COUNTER_RESET_GPIO);
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_33, HIGH);
+  //esp_sleep_enable_timer_wakeup(0.2*US_TO_S_FACTOR*60-esp_timer_get_time()); //For testing
+  esp_sleep_enable_timer_wakeup(dss.wake_up_time*US_TO_S_FACTOR*60-esp_timer_get_time());
+  lastsleep_time = get_rtc_time_us(); 
+  esp_deep_sleep_start();
 }
 
 void loop() {
