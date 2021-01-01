@@ -258,7 +258,248 @@ module.exports = function (app, pool) {
             console.log(err.message);
         }
     });
+     // Min value of every sensor
+ app.get("/measurements/min", async (req, res) => {
+    /*
+    Swagger Documentation:
+    #swagger.tags = ['Measurements']
+    #swagger.method = 'get'
+    #swagger.description = 'Minimum value of every sensor measurement'
+    */
 
+    try {
+        const query = "select min(temperature) AS temperature,"
+        + " min(humidity) AS humidity,"
+        + " min(wind) AS wind,"
+        + " min(noise_level) AS noise_level"
+        + " from measurements;";
+        //console.log(query);
+
+        const newMeasurement = await pool.query(query);
+        newMeasurement.rows[0].id = 1;
+
+        var jsonResult = JSON.stringify(newMeasurement.rows);
+
+        var preamble = "{ \"measurement\" : ";
+        jsonResult = preamble + jsonResult + "}";
+        jsonResult = JSON.parse(jsonResult);
+
+        //console.log(jsonResult);
+        res.json(jsonResult);
+
+    } catch (err) {
+        console.log(err.message);
+    }
+});
+
+    // Min value of every sensor in imperial units
+    app.get("/measurements/imperial/min", async (req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Minimum value of every sensor measurement in Imperial units'
+        */
+
+        try {
+            const query = "select min(temperature) AS temperature,"
+            + " min(humidity) AS humidity,"
+            + " min(wind) AS wind,"
+            + " min(noise_level) AS noise_level"
+            + " from measurements;";
+            //console.log(query);
+
+            const newMeasurement = await pool.query(query);
+            var cTemperature = newMeasurement.rows[0].temperature;
+            var mpsWind = newMeasurement.rows[0].wind;
+
+            //Celsius -> Fahrenheit 
+            var fTemperature = CelsiustoFahrenheit(cTemperature);
+
+            //Meters per second -> Miles per hour
+            var mphWind = MPStoMPH(mpsWind);
+
+            newMeasurement.rows[0].temperature = fTemperature;
+            newMeasurement.rows[0].wind = mphWind;
+            newMeasurement.rows[0].id = 1;
+
+            var jsonResult = JSON.stringify(newMeasurement.rows);
+
+            var preamble = "{ \"measurement\" : ";
+            jsonResult = preamble + jsonResult + "}";
+            jsonResult = JSON.parse(jsonResult);
+
+            //console.log(jsonResult);
+            res.json(jsonResult);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });   
+        // Max value of every sensor
+        app.get("/measurements/max", async (req, res) => {
+            /*
+            Swagger Documentation:
+            #swagger.tags = ['Measurements']
+            #swagger.method = 'get'
+            #swagger.description = 'Maximum value of every sensor measurement'
+            */
+    
+            try {
+                const query = "select max(temperature) AS temperature,"
+                + " max(humidity) AS humidity,"
+                + " max(wind) AS wind,"
+                + " max(noise_level) AS noise_level"
+                + " from measurements;";
+                //console.log(query);
+    
+                const newMeasurement = await pool.query(query);
+                newMeasurement.rows[0].id = 1;
+    
+                var jsonResult = JSON.stringify(newMeasurement.rows);
+    
+                var preamble = "{ \"measurement\" : ";
+                jsonResult = preamble + jsonResult + "}";
+                jsonResult = JSON.parse(jsonResult);
+    
+                //console.log(jsonResult);
+                res.json(jsonResult);
+    
+            } catch (err) {
+                console.log(err.message);
+            }
+        });
+
+        // Max value of every sensor in imperial units
+        app.get("/measurements/imperial/max", async (req, res) => {
+            /*
+            Swagger Documentation:
+            #swagger.tags = ['Measurements']
+            #swagger.method = 'get'
+            #swagger.description = 'Maximum value of every sensor measurement in Imperial units'
+            */
+    
+            try {
+                const query = "select max(temperature) AS temperature,"
+                + " max(humidity) AS humidity,"
+                + " max(wind) AS wind,"
+                + " max(noise_level) AS noise_level"
+                + " from measurements;";
+                //console.log(query);
+    
+                const newMeasurement = await pool.query(query);
+                var cTemperature = newMeasurement.rows[0].temperature;
+                var mpsWind = newMeasurement.rows[0].wind;
+    
+                //Celsius -> Fahrenheit 
+                var fTemperature = CelsiustoFahrenheit(cTemperature);
+    
+                //Meters per second -> Miles per hour
+                var mphWind = MPStoMPH(mpsWind);
+    
+                newMeasurement.rows[0].temperature = fTemperature;
+                newMeasurement.rows[0].wind = mphWind;
+                newMeasurement.rows[0].id = 1;
+    
+                var jsonResult = JSON.stringify(newMeasurement.rows);
+    
+                var preamble = "{ \"measurement\" : ";
+                jsonResult = preamble + jsonResult + "}";
+                jsonResult = JSON.parse(jsonResult);
+    
+                //console.log(jsonResult);
+                res.json(jsonResult);
+    
+            } catch (err) {
+                console.log(err.message);
+            }
+        });  
+
+        // Average value of every sensor
+        app.get("/measurements/average", async (req, res) => {
+            /*
+            Swagger Documentation:
+            #swagger.tags = ['Measurements']
+            #swagger.method = 'get'
+            #swagger.description = 'Average value of every sensor measurement'
+            */
+    
+            try {
+                const query = "select ROUND(AVG(temperature)::numeric,2) AS temperature,"
+                + " ROUND(AVG(humidity)::numeric,2) AS humidity,"
+                + " ROUND(AVG(wind)::numeric,2) AS wind,"
+                + " ROUND(AVG(noise_level)::numeric,2) AS noise_level"
+                + " from measurements;";
+                //console.log(query);
+    
+                const newMeasurement = await pool.query(query);
+                newMeasurement.rows[0].temperature = parseFloat(newMeasurement.rows[0].temperature);
+                newMeasurement.rows[0].humidity = parseFloat(newMeasurement.rows[0].humidity);
+                newMeasurement.rows[0].wind = parseFloat(newMeasurement.rows[0].wind);
+                newMeasurement.rows[0].noise_level = parseFloat(newMeasurement.rows[0].noise_level);
+                newMeasurement.rows[0].id = 1;
+    
+                var jsonResult = JSON.stringify(newMeasurement.rows);
+    
+                var preamble = "{ \"measurement\" : ";
+                jsonResult = preamble + jsonResult + "}";
+                jsonResult = JSON.parse(jsonResult);
+    
+                //console.log(jsonResult);
+                res.json(jsonResult);
+    
+            } catch (err) {
+                console.log(err.message);
+            }
+        });
+
+        // Max value of every sensor
+        app.get("/measurements/imperial/average", async (req, res) => {
+            /*
+            Swagger Documentation:
+            #swagger.tags = ['Measurements']
+            #swagger.method = 'get'
+            #swagger.description = 'Average value of every sensor measurement in Imperial units'
+            */
+    
+            try {
+                const query = "select ROUND(AVG(temperature)::numeric,2) AS temperature,"
+                + " ROUND(AVG(humidity)::numeric,2) AS humidity,"
+                + " ROUND(AVG(wind)::numeric,2) AS wind,"
+                + " ROUND(AVG(noise_level)::numeric,2) AS noise_level"
+                + " from measurements;";
+                //console.log(query);
+    
+                const newMeasurement = await pool.query(query);
+                var cTemperature = newMeasurement.rows[0].temperature;
+                var mpsWind = newMeasurement.rows[0].wind;
+    
+                //Celsius -> Fahrenheit 
+                var fTemperature = CelsiustoFahrenheit(cTemperature);
+    
+                //Meters per second -> Miles per hour
+                var mphWind = MPStoMPH(mpsWind);
+    
+                newMeasurement.rows[0].temperature = fTemperature;
+                newMeasurement.rows[0].humidity = parseFloat(newMeasurement.rows[0].humidity);
+                newMeasurement.rows[0].wind = mphWind;
+                newMeasurement.rows[0].noise_level = parseFloat(newMeasurement.rows[0].noise_level);
+    
+                newMeasurement.rows[0].id = 1;
+    
+                var jsonResult = JSON.stringify(newMeasurement.rows);
+    
+                var preamble = "{ \"measurement\" : ";
+                jsonResult = preamble + jsonResult + "}";
+                jsonResult = JSON.parse(jsonResult);
+    
+                //console.log(jsonResult);
+                res.json(jsonResult);
+    
+            } catch (err) {
+                console.log(err.message);
+            }
+        });  
     app.get("/measurements/average/:start/:end", async (req, res) => {
         /*
         Swagger Documentation:
@@ -628,6 +869,7 @@ module.exports = function (app, pool) {
         }
     });
 
+   
     // Min value of sensor X in interval Y
     app.get("/measurements/:sensor/min/:start/:end", async (req, res) => {
         /*
@@ -724,6 +966,7 @@ module.exports = function (app, pool) {
             console.log(err.message);
         }
     });
+      
 
     // Max value of sensor X in interval Y
     app.get("/measurements/:sensor/max/:start/:end", async (req, res) => {

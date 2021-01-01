@@ -288,6 +288,66 @@
         "responses": {}
       }
     },
+    "/measurements/min": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Minimum value of every sensor measurement",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial/min": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Minimum value of every sensor measurement in Imperial units",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/measurements/max": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Maximum value of every sensor measurement",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial/max": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Maximum value of every sensor measurement in Imperial units",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/measurements/average": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Average value of every sensor measurement",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/measurements/imperial/average": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Average value of every sensor measurement in Imperial units",
+        "parameters": [],
+        "responses": {}
+      }
+    },
     "/measurements/average/{start}/{end}": {
       "get": {
         "tags": [
