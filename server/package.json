@@ -13,12 +13,12 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "json2csv": "^5.0.4",
+    "json2csv": "^5.0.5",
     "md5": "^2.3.0",
     "md5-file": "^5.0.0",
     "pg": "^8.5.1",
     "swagger-autogen": "^1.1.0",
-    "swagger-jsdoc": "^6.0.0-rc.5",
+    "swagger-jsdoc": "^6.0.0",
     "swagger-ui-express": "^4.1.6"
   }
 }
