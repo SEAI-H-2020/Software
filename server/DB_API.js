@@ -63,7 +63,7 @@ module.exports = function (app, pool) {
             }
         */
         try {
-            const sensorData = req.body;
+            
             var query = "INSERT INTO measurements (tstamp, temperature, humidity, wind, noise_level, voltage) " +
             "VALUES ("+ req.body.tstamp + ", " + req.body.temperature + ", " + req.body.humidity + ", " + req.body.wind + ", " + req.body.noise_level + ", " + req.body.voltage + ")";
             

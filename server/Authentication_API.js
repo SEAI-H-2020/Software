@@ -61,7 +61,11 @@ app.get("/users/:username/:password", async(req, res) => {
         } else {
             string_result = "Check the username."
         }
-        res.send(string_result);
+        var aux = {
+            "result": string_result
+            };
+        //res.json(string_result);
+        res.send(aux);
         console.log(string_result);
     } catch (err) {
         console.log(err.message);
@@ -103,7 +107,10 @@ app.get("/insertuser/:username/:password/:email", async(req, res) => {
             string_result = "Utilizador já existe na DB";
     }
 
-    res.send(string_result);
-    console.log(string_result);
+    var aux = {
+        "result": string_result
+        };
+    //res.json(string_result);
+    res.send(aux);    console.log(string_result);
 });
 }
