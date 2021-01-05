@@ -1,0 +1,4 @@
+[submodule "sensorbox/lib/WiFiManager"]
+	path = sensorbox/lib/WiFiManager
+	url = https://github.com/SEAI-H-2020/WiFiManager.git
+	branch = development

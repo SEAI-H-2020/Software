@@ -14,6 +14,7 @@ typedef struct {
     float windspeed;
     float noise;
     float voltage;
+    char timestamp[20];
 } measurement_t;
 
 int post_measurements(measurement_t measurements[], uint8_t num_measurements, String endpoint);

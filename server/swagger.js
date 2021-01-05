@@ -56,7 +56,8 @@ const doc = {
             $sample_time: 5,
             $shutdown_on_wakeup: true,
             $username: "banana",
-            $latest_firmware: 0.2
+            $latest_firmware: 0.2,
+            $email: "banana@fe.up.pt"
         },
 
         MultipleMeasures: [{
