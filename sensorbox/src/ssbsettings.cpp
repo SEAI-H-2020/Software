@@ -42,12 +42,12 @@ int get_user_settings(settings_t *usersettings, String get_url, String ota_url){
     usersettings->sync_period = sync_period_updated;
     usersettings->sample_period = sample_period_updated;
 
-    float latest_firmware = GETdoc["latest_firmware"];
 
 
     http.end();
 
     #ifdef OTA_UPDATE
+    float latest_firmware = GETdoc["latest_firmware"];
       #ifdef FIRMWARE_VERSION
         Serial.println(FIRMWARE_VERSION);
         Serial.println(latest_firmware);

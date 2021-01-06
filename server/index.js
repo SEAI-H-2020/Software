@@ -66,8 +66,8 @@ app.put("/usersettings/:box_id", async(req, res) => {
         console.log("UPDATE request user settings of box: " + req.params.box_id);
         const queryres = await pool.query(
             `UPDATE configurations SET sync_period = $1, sample_time = $2,
-             shutdown_on_wakeup = $3, username = $4, latest_firmware = $5 WHERE box = $6`, [req.body.sync_period, req.body.sample_time,
-                req.body.shutdown_on_wakeup, req.body.username, req.body.latest_firmware, req.params.box_id
+             shutdown_on_wakeup = $3, username = $4, latest_firmware = $5 , email = $6 WHERE box = $7`, [req.body.sync_period, req.body.sample_time,
+                req.body.shutdown_on_wakeup, req.body.username, req.body.latest_firmware, req.body.email, req.params.box_id
             ]
         );
         console.log(queryres)
@@ -97,8 +97,8 @@ app.post("/usersettings/:box_id", async(req, res) => {
         const params = req.params;
         console.log("Insert request user settings of box: " + req.params.box_id);
         const queryres = await pool.query(
-            `INSERT INTO configurations VALUES ($1, $2, $3, $4, $5, $6)`, [req.params.box_id, req.body.sync_period, req.body.sample_time,
-                req.body.shutdown_on_wakeup, req.body.username , req.body.latest_firmware
+            `INSERT INTO configurations VALUES ($1, $2, $3, $4, $5, $6, $7)`, [req.params.box_id, req.body.sync_period, req.body.sample_time,
+                req.body.shutdown_on_wakeup, req.body.username, req.body.latest_firmware, req.body.email
             ]
         );
         console.log(queryres)
