@@ -27,7 +27,7 @@ const char* APpass = "softwareH";
 String box_id = "1";
 
 //Server Settings
-String POST_url = "http://smartsensorbox.ddns.net:5000/measurements/multiple";
+String POST_url = "http://smartsensorbox.ddns.net:5000/measurements_tstamp/multiple";
 String GET_url =  "http://smartsensorbox.ddns.net:5000/usersettings/" + box_id;
 String OTA_url =  "http://smartsensorbox.ddns.net:5000/update";
 
@@ -194,6 +194,17 @@ void setup() {
 	  measurements[idx].windspeed = calculate_windspeed(wscounter,dss.wake_up_time*60);
     measurements[idx].windspeed += overflow_count * (2^13);
 
+    // read measurement date and time
+    struct tm timeinfo;
+    if(!getLocalTime(&timeinfo)){
+      Serial.println("Failed to obtain time");
+    return;
+    }
+    else {
+      sprintf(measurements[idx].timestamp, "%02d-%02d-%02d %02d:%02d:%02d", timeinfo.tm_year+1900, timeinfo.tm_mon+1, timeinfo.tm_mday, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+      Serial.print("Datetime: ");
+      Serial.println(measurements[idx].timestamp); //2020-12-22 22:49:39'
+  }
 
     //clear_counter();
     //Serial.println("######### WindSpeed MEASUREMENTS ###########");
@@ -269,19 +280,6 @@ void setup() {
   float uptime = (float)esp_timer_get_time()*1e-6;
   Serial.print("Program duration:");
   Serial.println(uptime);
-
-  struct tm timeinfo;
-  if(!getLocalTime(&timeinfo)){
-    Serial.println("Failed to obtain time");
-    return;
-  }
-  else {
-    char str[20];
-    sprintf(str, "%02d-%02d-%02d %02d:%02d:%02d", timeinfo.tm_year+1900, timeinfo.tm_mon+1, timeinfo.tm_mday, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
-    Serial.print("Datetime: ");
-    Serial.println(str); //2020-12-22 22:49:39'
-  }
-
 
   //-----------------------------------Sleep----------------------------------------
   gpio_hold_en(COUNTER_RESET_GPIO);
