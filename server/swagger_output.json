@@ -373,6 +373,23 @@
         "responses": {}
       }
     },
+    "/measurements/average/{day}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Average Measurements for the \"day\": daytime -> 6am to 8pm, night time -> 8pm to 6am",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD"
+          }
+        ],
+        "responses": {}
+      }
+    },
     "/measurements/imperial/average/{start}/{end}": {
       "get": {
         "tags": [
@@ -803,6 +820,10 @@
         "latest_firmware": {
           "type": "number",
           "example": 0.2
+        },
+        "email": {
+          "type": "string",
+          "example": "banana@fe.up.pt"
         }
       },
       "required": [
@@ -810,7 +831,8 @@
         "sample_time",
         "shutdown_on_wakeup",
         "username",
-        "latest_firmware"
+        "latest_firmware",
+        "email"
       ],
       "xml": {
         "name": "NewUserSetting"

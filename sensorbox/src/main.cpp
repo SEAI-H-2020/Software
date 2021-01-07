@@ -27,7 +27,7 @@ const char* APpass = "softwareH";
 String box_id = "1";
 
 //Server Settings
-String POST_url = "http://smartsensorbox.ddns.net:5000/measurements/multiple";
+String POST_url = "http://smartsensorbox.ddns.net:5000/measurements_tstamp/multiple";
 String GET_url =  "http://smartsensorbox.ddns.net:5000/usersettings/" + box_id;
 String OTA_url =  "http://smartsensorbox.ddns.net:5000/update";
 
@@ -40,6 +40,46 @@ RTC_DATA_ATTR measurement_t measurements[MAX_MEASUREMENTS];
 RTC_DATA_ATTR dssettings_t dss;
 RTC_DATA_ATTR uint8_t num_measurements = 0;
 RTC_DATA_ATTR uint8_t overflow_count = 0;
+RTC_DATA_ATTR boolean buffer_overflow = false;
+
+const char* ntpServer = "pool.ntp.org";
+const long  gmtOffset_sec = 0;
+const int   daylightOffset_sec = 3600;
+
+void printLocalTime(){
+  struct tm timeinfo;
+  if(!getLocalTime(&timeinfo)){
+    Serial.println("Failed to obtain time");
+    return;
+  }
+  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+  Serial.print("Day of week: ");
+  Serial.println(&timeinfo, "%A");
+  Serial.print("Month: ");
+  Serial.println(&timeinfo, "%B");
+  Serial.print("Day of Month: ");
+  Serial.println(&timeinfo, "%d");
+  Serial.print("Year: ");
+  Serial.println(&timeinfo, "%Y");
+  Serial.print("Hour: ");
+  Serial.println(&timeinfo, "%H");
+  Serial.print("Hour (12 hour format): ");
+  Serial.println(&timeinfo, "%I");
+  Serial.print("Minute: ");
+  Serial.println(&timeinfo, "%M");
+  Serial.print("Second: ");
+  Serial.println(&timeinfo, "%S");
+
+  Serial.println("Time variables");
+  char timeHour[3];
+  strftime(timeHour,3, "%H", &timeinfo);
+  Serial.println(timeHour);
+  char timeWeekDay[10];
+  strftime(timeWeekDay,10, "%A", &timeinfo);
+  Serial.println(timeWeekDay);
+  Serial.println();
+}
+
 
 // Based on https://github.com/pycom/esp-idf-2.0/blob/master/components/newlib/time.c
 uint64_t get_rtc_time_us(){
@@ -70,7 +110,9 @@ void RTC_IRAM_ATTR esp_wake_deep_sleep(void) {
 void setup() {  
   // WiFiManager stuff
   #ifdef RESET_WIFI_SETTINGS
-  wm.resetSettings(); // wipe settings
+  if (wake_up_counter == 0){
+    wm.resetSettings(); // wipe settings on first cycle
+  }
   #endif
   std::vector<const char *> menu = {"wifi","info","sep","restart","exit"};
   wm.setMenu(menu);
@@ -83,6 +125,15 @@ void setup() {
   #endif
   
   Serial.println("\n Starting");
+
+    //---------------------------Mesurement buffer check----------------------------
+  Serial.print("Measurements in buffer: ");
+  Serial.println(num_measurements);
+  if (num_measurements >= MAX_MEASUREMENTS){
+      Serial.println("Buffer full! Overwriting measurements!");
+      num_measurements = 0; //starts overwriting from index 0
+      buffer_overflow = true;
+  }
 
   //-----------------------------HARDWARE SETUP----------------------------------
   setup_ws_sensor();
@@ -142,17 +193,29 @@ void setup() {
     uint16_t wscounter = read_windspeed_raw();
 	  measurements[idx].windspeed = calculate_windspeed(wscounter,dss.wake_up_time*60);
     measurements[idx].windspeed += overflow_count * (2^13);
-    clear_counter();
 
-    Serial.println("######### WindSpeed MEASUREMENTS ###########");
-	  Serial.print("BIN: ");
-	  print_counter_state_bin(wscounter);
-    Serial.print("DEC: ");
-	  Serial.println(wscounter);
-	  Serial.print("WS: ");
-	  Serial.println(measurements[idx].windspeed);
-    Serial.print("Num Overflows: ");
-	  Serial.println(overflow_count);
+    // read measurement date and time
+    struct tm timeinfo;
+    if(!getLocalTime(&timeinfo)){
+      Serial.println("Failed to obtain time");
+    return;
+    }
+    else {
+      sprintf(measurements[idx].timestamp, "%02d-%02d-%02d %02d:%02d:%02d", timeinfo.tm_year+1900, timeinfo.tm_mon+1, timeinfo.tm_mday, timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
+      Serial.print("Datetime: ");
+      Serial.println(measurements[idx].timestamp); //2020-12-22 22:49:39'
+  }
+    //
+    //clear_counter();
+    //Serial.println("######### WindSpeed MEASUREMENTS ###########");
+	  //Serial.print("BIN: ");
+	  //print_counter_state_bin(wscounter);
+    //Serial.print("DEC: ");
+	  //Serial.println(wscounter);
+	  //Serial.print("WS: ");
+	  //Serial.println(measurements[idx].windspeed);
+    //Serial.print("Num Overflows: ");
+	  //Serial.println(overflow_count);
 
     wscounter = 0;
     overflow_count = 0;
@@ -167,40 +230,52 @@ void setup() {
 
   if ((wake_up_counter % dss.sync_counter == 0) || (is_initialized == false)){
     Serial.println("SYNC");
+
     //-------------------------Connect to Wifi----------------------------------
-    bool res = wm.autoConnect(APname, APpass);
+    bool is_connected = wm.autoConnect(is_initialized, APname, APpass);
 
-    if(!res) {
-      Serial.println("Failed to connect or hit timeout");
-      ESP.restart();
-    } 
-    else {
-      Serial.println("Connected!");
+    if(is_connected) {
+      //-------------------------User Settings ------------------------------------
+      if (!get_user_settings(&usersettings, GET_url, OTA_url)){
+        dss.wake_up_time = min(usersettings.sync_period, usersettings.sample_period);
+        dss.sample_counter = usersettings.sample_period/dss.wake_up_time;
+        dss.sync_counter = usersettings.sync_period/dss.wake_up_time;
+        is_initialized = true;
+      } 
+      else{
+        Serial.print("Failure in syncing to db");
+      }
+
+      //-------------------------Post user settings--------------------------------
+      if (num_measurements > 0 || buffer_overflow){
+        // In case of overflow post all measurements -> circular buffer
+        if (buffer_overflow){
+          num_measurements = MAX_MEASUREMENTS;
+        }
+        Serial.print("Number of samples to post");
+        Serial.println(num_measurements);
+        post_measurements(measurements, num_measurements, POST_url);
+        //ToDo: add fail check
+        Serial.println("Posted!!");
+        num_measurements = 0;
+        buffer_overflow = false;
+      }
+      //------------------------- Clock Sync----------------------------------------
+      configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
     }
-
-    //-------------------------User Settings ------------------------------------
-    res = get_user_settings(&usersettings, GET_url, OTA_url);
-    if (!res){
-      dss.wake_up_time = min(usersettings.sync_period, usersettings.sample_period);
-      dss.sample_counter = usersettings.sample_period/dss.wake_up_time;
-      dss.sync_counter = usersettings.sync_period/dss.wake_up_time;
-      is_initialized = true;
+    else if (!is_connected && is_initialized){
+        Serial.println("Unable to sync. Running in Offline mode.");
     } 
+    else if (!is_connected && !is_initialized) {
+        Serial.println("Failure to connect or timeout. Rebooting");
+        ESP.restart();
+    }
     else{
-      Serial.print("Failure in syncing to db");
-      exit(0);
+        Serial.println("Oops..Something went wrong. Rebooting");
+        ESP.restart();
     }
-
-    //-------------------------Post user settings--------------------------------
-    if (num_measurements > 0){
-      Serial.print("Number of samples to post");
-      Serial.println(num_measurements);
-      post_measurements(measurements, num_measurements, POST_url);
-      //ToDo: add fail check
-      Serial.println("Posted!!");
-    }
-    num_measurements = 0;
   }
+
 
   float uptime = (float)esp_timer_get_time()*1e-6;
   Serial.print("Program duration:");
@@ -209,8 +284,8 @@ void setup() {
   //-----------------------------------Sleep----------------------------------------
   gpio_hold_en(COUNTER_RESET_GPIO);
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_33, HIGH);
-  //esp_sleep_enable_timer_wakeup(0.2*US_TO_S_FACTOR*60-esp_timer_get_time()); //For testing
-  esp_sleep_enable_timer_wakeup(dss.wake_up_time*US_TO_S_FACTOR*60-esp_timer_get_time());
+  esp_sleep_enable_timer_wakeup(0.2*US_TO_S_FACTOR*60-esp_timer_get_time()); //For testing
+  //esp_sleep_enable_timer_wakeup(dss.wake_up_time*US_TO_S_FACTOR*60-esp_timer_get_time());
   lastsleep_time = get_rtc_time_us(); 
   esp_deep_sleep_start();
 }
