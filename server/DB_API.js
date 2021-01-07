@@ -537,6 +537,76 @@ module.exports = function (app, pool) {
         }
     });
 
+    app.get("/measurements/average/:day", async (req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Average Measurements for the "day": daytime -> 6am to 8pm, night time -> 8pm to 6am'
+        #swagger.parameters['day'] = {description: 'YYYY-MM-DD'}
+        */
+        var getDay = [req.params.day];
+
+
+        var day = new Date((new Date("2021-01-07")).getTime());
+        var dayComplete = 60 * 60 * 24 * 1000;
+        var endDate = new Date(day.getTime() + dayComplete);
+        var nextday = endDate.toISOString().split('T')[0];
+
+
+        var dayTimeInitial = getDay + " 06:00:00";
+        var dayTimeEnd = getDay + " 20:00:00";
+        var nextDayTimeInitial = nextday + " 06:00:00";
+
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT ROUND(AVG(temperature)::numeric,2) as temperature, ROUND(AVG(humidity)::numeric,2) as humidity, ROUND(AVG(wind)::numeric,2) as wind, ROUND(AVG(noise_level )::numeric,2) as noise_level " +
+                "from measurements " +
+                "WHERE tstamp BETWEEN '" + dayTimeInitial + "' AND '" + dayTimeEnd + "';"
+            );
+            newMeasurement.rows[0].time = "dayTime";
+            newMeasurement.rows[0].temperature = parseFloat(newMeasurement.rows[0].temperature);
+            newMeasurement.rows[0].humidity = parseFloat(newMeasurement.rows[0].humidity);
+            newMeasurement.rows[0].wind = parseFloat(newMeasurement.rows[0].wind);
+            newMeasurement.rows[0].noise_level = parseFloat(newMeasurement.rows[0].noise_level);
+            var dayTimeJson = JSON.stringify(newMeasurement.rows);
+
+            dayTimeJson = JSON.parse(dayTimeJson);
+            dayTimeJson = JSON.stringify(dayTimeJson);
+            dayTimeJson = dayTimeJson.substring(0, dayTimeJson.length - 1) +  ",";
+        } catch (err) {
+            console.log(err.message);
+        }
+
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT ROUND(AVG(temperature)::numeric,2) as temperature, ROUND(AVG(humidity)::numeric,2) as humidity, ROUND(AVG(wind)::numeric,2) as wind, ROUND(AVG(noise_level )::numeric,2) as noise_level " +
+                "from measurements " +
+                "WHERE tstamp BETWEEN '" + dayTimeEnd + "' AND '" + nextDayTimeInitial + "';"
+            );
+            newMeasurement.rows[0].time = "nightTime";
+            newMeasurement.rows[0].temperature = parseFloat(newMeasurement.rows[0].temperature);
+            newMeasurement.rows[0].humidity = parseFloat(newMeasurement.rows[0].humidity);
+            newMeasurement.rows[0].wind = parseFloat(newMeasurement.rows[0].wind);
+            newMeasurement.rows[0].noise_level = parseFloat(newMeasurement.rows[0].noise_level);
+            var nightTimeJson = JSON.stringify(newMeasurement.rows);
+
+
+            nightTimeJson = JSON.parse(nightTimeJson);
+            nightTimeJson = JSON.stringify(nightTimeJson);
+
+            nightTimeJson = nightTimeJson.substring(1, nightTimeJson.length);
+
+            var jsonComplete = dayTimeJson + nightTimeJson;
+            jsonComplete = JSON.parse(jsonComplete);
+
+            res.json(jsonComplete);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
     //Average imperial Measurements between 'start' and 'end'
     app.get("/measurements/imperial/average/:start/:end", async (req, res) => {
         /*
