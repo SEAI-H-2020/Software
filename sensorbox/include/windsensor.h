@@ -1,6 +1,8 @@
 #ifndef WINDSENSOR_H
 #define WINDSENSOR_H
 
+#include "esp_settings.h"
+
 #define COUNTERQ1 16
 #define COUNTERQ4 17	
 #define COUNTERQ5 18

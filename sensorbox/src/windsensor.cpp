@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include "windsensor.h"
-
 void setup_ws_sensor(){
 	pinMode(COUNTERQ1 , INPUT);	
 	pinMode(COUNTERQ4 , INPUT);

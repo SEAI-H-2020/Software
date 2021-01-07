@@ -1,33 +1,33 @@
 #include "ssbdeepsleep.h"
 
 void debug_sample_counter(dssettings_t dss, uint32_t wake_up_counter){
-  Serial.print("wake_up_counter: ");
-  Serial.print(wake_up_counter);
-  Serial.print("\tsample_counter: ");
-  Serial.print(dss.sample_counter);
-  Serial.print("\tresult: ");
-  Serial.println(wake_up_counter % dss.sample_counter);
+  DEBUG_PRINT("wake_up_counter: ");
+  DEBUG_PRINT(wake_up_counter);
+  DEBUG_PRINT("\tsample_counter: ");
+  DEBUG_PRINT(dss.sample_counter);
+  DEBUG_PRINT("\tresult: ");
+  DEBUG_PRINT(wake_up_counter % dss.sample_counter);
 }
 
 void debug_sync_counter(dssettings_t dss, uint32_t wake_up_counter){
-  Serial.print("wake_up_counter: ");
-  Serial.print(wake_up_counter);
-  Serial.print("\tsync_counter: ");
-  Serial.print(dss.sync_counter);
-  Serial.print("\tresult: ");
-  Serial.println(wake_up_counter % dss.sync_counter);
+  DEBUG_PRINT("wake_up_counter: ");
+  DEBUG_PRINT(wake_up_counter);
+  DEBUG_PRINT("\tsync_counter: ");
+  DEBUG_PRINT(dss.sync_counter);
+  DEBUG_PRINT("\tresult: ");
+  DEBUG_PRINT(wake_up_counter % dss.sync_counter);
 }
 
 uint8_t check_wakeup_reason(){
 	esp_sleep_wakeup_cause_t wakeup_reason;
 	wakeup_reason = esp_sleep_get_wakeup_cause();
   switch(wakeup_reason){
-    case ESP_SLEEP_WAKEUP_EXT0 : Serial.println("Wakeup caused by external signal using RTC_IO"); break;
-    case ESP_SLEEP_WAKEUP_EXT1 : Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
-    case ESP_SLEEP_WAKEUP_TIMER : Serial.println("Wakeup caused by timer"); break;
-    case ESP_SLEEP_WAKEUP_TOUCHPAD : Serial.println("Wakeup caused by touchpad"); break;
-    case ESP_SLEEP_WAKEUP_ULP : Serial.println("Wakeup caused by ULP program"); break;
-    default : Serial.printf("Wakeup was not caused by deep sleep: %d\n",wakeup_reason); break;
+    case ESP_SLEEP_WAKEUP_EXT0 : DEBUG_PRINT("Wakeup caused by external signal using RTC_IO"); break;
+    case ESP_SLEEP_WAKEUP_EXT1 : DEBUG_PRINT("Wakeup caused by external signal using RTC_CNTL"); break;
+    case ESP_SLEEP_WAKEUP_TIMER : DEBUG_PRINT("Wakeup caused by timer"); break;
+    case ESP_SLEEP_WAKEUP_TOUCHPAD : DEBUG_PRINT("Wakeup caused by touchpad"); break;
+    case ESP_SLEEP_WAKEUP_ULP : DEBUG_PRINT("Wakeup caused by ULP program"); break;
+    default : DEBUG_PRINT("Wakeup was not caused by deep sleep"); break;
   }
   return wakeup_reason;
 }
