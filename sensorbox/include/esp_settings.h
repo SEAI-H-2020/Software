@@ -5,14 +5,16 @@
 
 #define MAX_MEASUREMENTS 80
 
-#define DEBUG 
+//#define BATT_MEASURE
+
+//#define DEBUG 
 #ifdef DEBUG
 // set up string messagesc
-#define DEBUG_PRINT(str)    \
+#define DEBUG_P(str)    \
    Serial.print("[DEBUG] "); \
    Serial.println(str);        
 #else
-    #define DEBUG_PRINT(str) // just leaves an empty definition without serial printing
+    #define DEBUG_P(str) // just leaves an empty definition without serial printing
 #endif
 
 //#define RESET_WIFI_SETTINGS   

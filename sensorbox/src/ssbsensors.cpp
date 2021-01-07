@@ -18,19 +18,19 @@ int post_measurements(measurement_t measurements[], uint8_t num_measurements, St
     String requestBody;
     // build Json string
     serializeJson(POSTdoc, requestBody);
-    DEBUG_PRINT("in posting");
-    DEBUG_PRINT(requestBody);
-    //DEBUG_PRINT(endpoint);
+    DEBUG_P("in posting");
+    DEBUG_P(requestBody);
+    //DEBUG_P(endpoint);
     
     //Debug Stuff
     int httpResponseCode = http.POST(requestBody);
-    DEBUG_PRINT(httpResponseCode);
-    DEBUG_PRINT(http.getString());
+    DEBUG_P(httpResponseCode);
+    DEBUG_P(http.getString());
 
     
     // POST test
-    //DEBUG_PRINT("HTTP Response code: ");
-    //DEBUG_PRINT(httpResponseCode);
+    //DEBUG_P("HTTP Response code: ");
+    //DEBUG_P(httpResponseCode);
       
     
     // Close TCP connection 
