@@ -32,6 +32,7 @@ int post_measurements(measurement_t measurements[], uint8_t num_measurements, St
     Serial.print("HTTP payload: ");
     Serial.print(httpPayload);
     #endif
+    
     // POST test
     //Serial.print("HTTP Response code: ");
     //Serial.println(httpResponseCode);
