@@ -205,7 +205,7 @@ void setup() {
       Serial.print("Datetime: ");
       Serial.println(measurements[idx].timestamp); //2020-12-22 22:49:39'
   }
-
+    //
     //clear_counter();
     //Serial.println("######### WindSpeed MEASUREMENTS ###########");
 	  //Serial.print("BIN: ");
