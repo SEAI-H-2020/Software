@@ -589,6 +589,10 @@ module.exports = function (app, pool) {
             nightTimeJson = JSON.stringify(nightTimeJson);
             nightTimeJson = nightTimeJson.substring(1, nightTimeJson.length);
             var jsonComplete = dayTimeJson + nightTimeJson;
+
+            var preamble = "{ \"measurement\" : ";
+            jsonComplete = preamble + jsonComplete + "}";
+
             jsonComplete = JSON.parse(jsonComplete);
 
             res.json(jsonComplete);
