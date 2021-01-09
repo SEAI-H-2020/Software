@@ -112,9 +112,10 @@ app.post("/usersettings/:box_id", async(req, res) => {
             ]
         );
         console.log(queryres)
-        res.json("Inserted (not checking yet please confirm with db!)");
+        res.json("Inserted!");
     } catch (err) {
         console.log(err.message);
+        res.json(err.message);
     }
 });
 
