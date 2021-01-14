@@ -5,7 +5,7 @@ const Pool = require("pg").Pool;
 const pool = new Pool({
     user: "postgres",
     password: "seaiH",
-    host: "localhost",
+    host: "smartsensorbox.ddns.net",
     port: 5432,
     database: "seai"
 });
