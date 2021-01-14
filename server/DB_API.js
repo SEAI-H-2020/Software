@@ -92,7 +92,7 @@ module.exports = function (app, pool) {
             );
             // ToDo: Add checks for csv integrity
             const csv = json2csv.parse(queryres.rows);
-            res.header('Content-Type', 'text/csv');
+            //res.header('Content-Type', 'text/csv');
             //res.attachment(fileName);
             let modified_csv = csv.replace(new RegExp('\n', 'g'), '\r\n');   
             res.send(modified_csv);
