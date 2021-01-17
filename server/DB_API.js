@@ -603,6 +603,89 @@ module.exports = function (app, pool) {
         }
     });
 
+    app.get("/measurements/imperial/average/daynight/:start/:end", async (req, res) => {
+        /*
+        Swagger Documentation:
+        #swagger.tags = ['Measurements']
+        #swagger.method = 'get'
+        #swagger.description = 'Average Measurements daytime -> 6am to 8pm, night time -> 8pm to 6am between the "start" and "end" interval'
+        #swagger.parameters['start'] = {description: 'YYYY-MM-DD', type: 'string'}
+        #swagger.parameters['end'] = {description: 'YYYY-MM-DD', type: "string"}
+        */
+        var getStart = [req.params.start];
+        var getEnd = [req.params.end];
+
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT ROUND(AVG(temperature)::numeric,2) as temperature_day, ROUND(AVG(humidity)::numeric,2) as humidity_day, ROUND(AVG(wind)::numeric,2) as wind_day, ROUND(AVG(noise_level )::numeric,2) as noise_level_day " +
+                "from measurements " +
+                "where tstamp::date between date '" + getStart + "' and date '" + getEnd + "' " +
+                "and tstamp::time between time '08:00:00' and '16:00:00';"
+            );
+
+            var cTemperatureDay = newMeasurement.rows[0].temperature_day;
+            var mpsWindDay = newMeasurement.rows[0].wind_day;
+                //Celsius -> Fahrenheit 
+            var fTemperatureDay = CelsiustoFahrenheit(cTemperatureDay);
+
+            //Meters per second -> Miles per hour
+            var mphWindDay = MPStoMPH(mpsWindDay);
+
+            newMeasurement.rows[0].temperature_day = fTemperatureDay;
+            newMeasurement.rows[0].humidity_day = parseFloat(newMeasurement.rows[0].humidity_day);
+            newMeasurement.rows[0].wind_day = mphWindDay;
+            newMeasurement.rows[0].noise_level_day = parseFloat(newMeasurement.rows[0].noise_level_day);
+            var dayTimeJson = JSON.stringify(newMeasurement.rows);
+
+            dayTimeJson = JSON.parse(dayTimeJson);
+            dayTimeJson = JSON.stringify(dayTimeJson);
+            dayTimeJson = dayTimeJson.substring(0, dayTimeJson.length - 1) +  ",";
+
+        } catch (err) {
+            console.log(err.message);
+        }
+
+        try {
+            const newMeasurement = await pool.query(
+                "SELECT ROUND(AVG(temperature)::numeric,2) as temperature_night, ROUND(AVG(humidity)::numeric,2) as humidity_night, ROUND(AVG(wind)::numeric,2) as wind_night, ROUND(AVG(noise_level )::numeric,2) as noise_level_night " +
+                "from measurements " +
+                "where tstamp::date between date '" + getStart + "' and date '" + getEnd + "' " +
+                "AND ((tstamp::time between time '00:00:00'   and time '06:00:00') " +
+                "OR   (tstamp::time between time '20:00:00'   and time '23:59:59'));"
+            );
+
+            var cTemperatureNight = newMeasurement.rows[0].temperature_night;
+            var mpsWindNight = newMeasurement.rows[0].wind_night;
+                //Celsius -> Fahrenheit 
+            var fTemperatureNight = CelsiustoFahrenheit(cTemperatureNight);
+
+            //Meters per second -> Miles per hour
+            var mphWindNight = MPStoMPH(mpsWindNight);
+
+            newMeasurement.rows[0].temperature_night = fTemperatureNight;
+            newMeasurement.rows[0].humidity_night = parseFloat(newMeasurement.rows[0].humidity_night);
+            newMeasurement.rows[0].wind_night = mphWindNight;
+            newMeasurement.rows[0].noise_level_night = parseFloat(newMeasurement.rows[0].noise_level_night);
+
+            var nightTimeJson = JSON.stringify(newMeasurement.rows);
+
+            nightTimeJson = JSON.parse(nightTimeJson);
+            nightTimeJson = JSON.stringify(nightTimeJson);
+            nightTimeJson = nightTimeJson.substring(1, nightTimeJson.length);
+            var jsonComplete = dayTimeJson + nightTimeJson;
+
+            var preamble = "{ \"measurement\" : ";
+            jsonComplete = preamble + jsonComplete + "}";
+
+            jsonComplete = JSON.parse(jsonComplete);
+
+            res.json(jsonComplete);
+
+        } catch (err) {
+            console.log(err.message);
+        }
+    });
+
 
 
     app.get("/measurements/average/:day", async (req, res) => {

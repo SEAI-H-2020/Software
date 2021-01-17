@@ -398,6 +398,31 @@
         "responses": {}
       }
     },
+    "/measurements/imperial/average/daynight/{start}/{end}": {
+      "get": {
+        "tags": [
+          "Measurements"
+        ],
+        "description": "Average Measurements daytime -> 6am to 8pm, night time -> 8pm to 6am between the \"start\" and \"end\" interval",
+        "parameters": [
+          {
+            "name": "start",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD",
+            "type": "string"
+          },
+          {
+            "name": "end",
+            "in": "path",
+            "required": true,
+            "description": "YYYY-MM-DD",
+            "type": "string"
+          }
+        ],
+        "responses": {}
+      }
+    },
     "/measurements/average/{day}": {
       "get": {
         "tags": [
