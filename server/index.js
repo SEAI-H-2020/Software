@@ -64,10 +64,30 @@ app.put("/usersettings/:box_id", async(req, res) => {
     try {
         const params = req.params;
         console.log("UPDATE request user settings of box: " + req.params.box_id);
+
+        //Calculate sync period from sample period
+        let sync_time;
+        switch(req.body.sample_time){
+            case 1:
+                sync_time = 5;
+                break;
+            case 5:
+                sync_time = 25;
+                break;
+            case 10:
+            case 15:
+            case 30:
+            case 60:
+                sync_time = 30;
+                break;
+            default:
+                throw new Error(`Invalid sample_time: ${req.body.sample_time}`);
+        }
+        
         const settingsres = await pool.query(
-            `UPDATE configurations SET sync_period = $1, sample_time = $2,
-             shutdown_on_wakeup = $3, latest_firmware = $4 WHERE box = $5`, [req.body.sync_period, req.body.sample_time,
-                req.body.shutdown_on_wakeup, req.body.latest_firmware, req.params.box_id
+            `UPDATE configurations SET sync_period = $1, sample_time = $2 WHERE box = $3`, 
+             [
+                 sync_time, req.body.sample_time, req.params.box_id
             ]
         );
         const usersres = await pool.query(
@@ -106,13 +126,35 @@ app.post("/usersettings/:box_id", async(req, res) => {
     try {
         const params = req.params;
         console.log("Insert request user settings of box: " + req.params.box_id);
+
+        //Calculate sync period from sample period
+        let sync_time;
+        switch(req.body.sample_time){
+            case 1:
+                sync_time = 5;
+                break;
+            case 5:
+                sync_time = 25;
+                break;
+            case 10:
+            case 15:
+            case 30:
+            case 60:
+                sync_time = 30;
+                break;
+            default:
+                throw new Error(`Invalid sample_time: ${req.body.sample_time}`);
+        }
+
         const queryres = await pool.query(
-            `INSERT INTO configurations VALUES ($1, $2, $3, $4, $5, $6, $7)`, [req.params.box_id, req.body.sync_period, req.body.sample_time,
-                req.body.shutdown_on_wakeup, req.body.username, req.body.latest_firmware, req.body.email
+            `INSERT INTO configurations (box, sync_period, sample_time, username, email)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [
+                req.params.box_id, sync_time, req.body.sample_time, req.body.username, req.body.email
             ]
         );
         console.log(queryres)
-        res.json("Inserted!");
+        res.json(queryres);
     } catch (err) {
         console.log(err.message);
         res.json(err.message);

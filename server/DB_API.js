@@ -94,6 +94,7 @@ module.exports = function (app, pool) {
             const csv = json2csv.parse(queryres.rows);
             res.header('Content-Type', 'text/csv');
             res.attachment(fileName);
+            //let modified_csv = csv.replace(new RegExp('\n', 'g'), '\r\n');   
             res.send(csv);
         } catch (err) {
             console.log(err.message);
