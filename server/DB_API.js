@@ -922,7 +922,8 @@ module.exports = function (app, pool) {
 
         try {
             const newMeasurement = await pool.query(
-                "SELECT * from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+                "SELECT * from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd +
+                "' order by tstamp ASC;"
             );
 
             var jsonResult = JSON.stringify(newMeasurement.rows);
@@ -954,8 +955,10 @@ module.exports = function (app, pool) {
 
         try {
             const newMeasurement = await pool.query(
-                "SELECT * from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+                "SELECT * from measurements WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd +
+                "' order by tstamp ASC;"
             );
+
             var i = 0;
             var rows = newMeasurement.rowCount;
             var cTemperature = 0;
@@ -1011,7 +1014,8 @@ module.exports = function (app, pool) {
             const newMeasurement = await pool.query(
                 "SELECT " + getSensor + ",tstamp, id " +
                 "from measurements " +
-                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + 
+                "' order by tstamp ASC;"
             );
 
             var jsonResult = JSON.stringify(newMeasurement.rows);
@@ -1047,7 +1051,8 @@ module.exports = function (app, pool) {
             const newMeasurement = await pool.query(
                 "SELECT " + getSensor + ",tstamp, id " +
                 "from measurements " +
-                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + "';"
+                "WHERE tstamp BETWEEN '" + getStart + "' AND '" + getEnd + 
+                "' order by tstamp ASC;"
             );
 
             var i = 0;
