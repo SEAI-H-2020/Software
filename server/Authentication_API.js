@@ -89,6 +89,7 @@ app.get("/insertuser/:username/:password/:email", async(req, res) => {
         var getUsername = [req.params.username];
         var getPassword = [req.params.password];
         var getEmail = [req.params.email];
+        var validatedUser = 1;
 
         const md5 = require('md5');
         var encryptedPassword = md5(String(getPassword));
@@ -96,16 +97,43 @@ app.get("/insertuser/:username/:password/:email", async(req, res) => {
         console.log('Normal password : ', String(getPassword));
         console.log('Hashed password : ', encryptedPassword);
 
-        const insertUser = "INSERT INTO users(username, password, email) VALUES ('" + getUsername + "', '" + encryptedPassword + "', '" + getEmail + "')";
 
-        console.log(insertUser);
-        await pool.query(insertUser);
+        const checkUsername = "SELECT COUNT(*) FROM users WHERE username = '" + getUsername + "'";
+        const usernameExists = await pool.query(checkUsername);
 
-        string_result = "Utilizador inserido na DB com sucesso";
-    } catch (err) {
-        if (err.code == 23505)
-            string_result = "Utilizador já existe na DB";
-    }
+        var userCounter = usernameExists.rows[0].count;
+
+        if (userCounter > 0){
+            string_result = "Username já existe na DB";
+            validatedUser = 0;
+        }
+
+        const checkEmail = "SELECT COUNT(*) FROM users WHERE email = '" + getEmail + "'";
+        const emailExists = await pool.query(checkEmail);
+
+        var mailCounter = emailExists.rows[0].count;
+
+        if (mailCounter > 0){
+            validatedUser = 0;
+
+            if (string_result != "")
+                string_result = "Username e email já existem na BD";
+            else
+                string_result = "Email já existe na DB";
+        }
+
+        if (validatedUser == 1){
+            const insertUser = "INSERT INTO users(username, password, email) VALUES ('" + getUsername + "', '" + encryptedPassword + "', '" + getEmail + "')";
+
+            console.log(insertUser);
+            await pool.query(insertUser);
+    
+            string_result = "Utilizador inserido na DB com sucesso";
+        } 
+        }catch (err) {
+            if (err.code == 23505)
+                string_result = "Utilizador já existe na DB";
+        }
 
     var aux = {
         "result": string_result
